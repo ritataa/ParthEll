@@ -3,7 +3,7 @@
 * Codice gruppo: rklikgyqnah
 
 Si vuole simulare un sistema relativo ad un gestore telefonico. Un gestore telefonico dispone di n utenti abbonati che effettuano chiamate telefoniche, inviano sms o effettuano
-trasferimento dati. Ogni obbonato è identificato da un nome, cognome, residenza, numero di telefono, piano tariffario e un conto (fisso o ricaricabile).
+trasferimento dati. Ogni abbonato è identificato da un nome, cognome, residenza, numero di telefono, piano tariffario e un conto (fisso o ricaricabile).
 Il gestore telefonico prevede un piano tariffario base a cui possono essere aggiunte delle nuove opzioni. Gli abbonati possono anche usufruire di promozioni speciali (i.e., internet
 illimitato ad un costo fisso mensile, . . .).
 
@@ -30,7 +30,7 @@ Il progetto deve essere sviluppato secondo le seguenti linee:
 * usare almeno due pattern per persona tra i design pattern visti a lezione;
 * attenersi ai principi della programmazione SOLID;
 * usare il linguaggio Java;
-* inserire suffcienti commenti (anche per Javadoc) e annotazioni;
+* inserire sufficienti commenti (anche per Javadoc) e annotazioni;
 * gestione delle eccezioni;
 * usare i file o database;
 
