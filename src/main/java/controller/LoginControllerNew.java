@@ -1,6 +1,8 @@
 package controller;
 
 import java.io.IOException;
+
+import exception.AuthenticationException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,7 +16,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import service.AuthenticationService;
-import exception.AuthenticationException;
 
 /**
  * Controller per la gestione dell'interfaccia di login dell'applicazione ParthEll.
@@ -28,7 +29,7 @@ import exception.AuthenticationException;
  * @version 1.0
  * @since 1.0
  */
-public class LoginController {
+public class LoginControllerNew {
 
     /** Label per visualizzare messaggi di errore */
     @FXML private Label errorLabel;
