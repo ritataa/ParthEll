@@ -1,0 +1,17 @@
+# Ignora cartella JavaFX SDK
+javafx-sdk-*/
+
+# File di sistema Mac
+.DS_Store
+
+# File temporanei di VSCode
+.vscode/
+
+# Output di compilazione
+bin/
+out/
+target/
+
+# File di backup
+*.log
+*.tmp
