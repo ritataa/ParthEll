@@ -1,0 +1,6 @@
+controller/ClienteController.class
+controller/LoginController.class
+model/Promozione.class
+controller/AdminController.class
+model/Abbonato.class
+Main.class
