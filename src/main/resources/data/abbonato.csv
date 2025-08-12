@@ -1,4 +1,4 @@
-email,password,ruolo,nome,cognome,residenza,numeroTelefono,pianoTariffario,conto
+email,password,nome,cognome,residenza,numeroTelefono,pianoTariffario,conto,saldo
 
-anna@gmail.com,anna123,cliente,Anna,Rosa,Salerno,3339988776,plus,ricaricabile
-sara@gmail.com,sara123,cliente,Sara,Rossi,Milano,3364384733,plus,ricaricabile
+anna@gmail.com,anna123,Anna,Rosa,Salerno,3339988776,plus,ricaricabile,10
+sara@gmail.com,sara123,Sara,Rossi,Milano,3364384733,plus,ricaricabile,18

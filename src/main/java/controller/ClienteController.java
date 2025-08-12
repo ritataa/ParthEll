@@ -39,6 +39,11 @@ public class ClienteController {
     @FXML private Button pagamentoCartaButton;
     @FXML private Button pagamentoBancomatButton;
     @FXML private Button logoutButton;
+        @FXML private TextField emailClienteField;
+        @FXML private TextField passwordClienteField;
+        @FXML private TextField nomeClienteField;
+        @FXML private TextField cognomeClienteField;
+        @FXML private Button aggiungiClienteButton;
 
     private ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
 
@@ -178,4 +183,36 @@ public class ClienteController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+        /**
+         * Gestisce l'aggiunta di un nuovo cliente al file CSV.
+         */
+        @FXML
+        public void handleAggiungiCliente(ActionEvent event) {
+            String email = emailClienteField.getText();
+            String password = passwordClienteField.getText();
+            String nome = nomeClienteField.getText();
+            String cognome = cognomeClienteField.getText();
+
+            if (email.isEmpty() || password.isEmpty() || nome.isEmpty() || cognome.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Attenzione", "Compila tutti i campi!");
+                return;
+            }
+
+            String ruolo = "cliente";
+            String riga = String.format("%s,%s,%s,%s,%s\n", email, password, ruolo, nome, cognome);
+            String path = "src/main/resources/data/abbonato.csv";
+
+            try (java.io.FileWriter fw = new java.io.FileWriter(path, true)) {
+                fw.write(riga);
+                showAlert(Alert.AlertType.INFORMATION, "Successo", "Cliente aggiunto correttamente!");
+                emailClienteField.clear();
+                passwordClienteField.clear();
+                nomeClienteField.clear();
+                cognomeClienteField.clear();
+            } catch (IOException e) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile aggiungere il cliente!");
+                e.printStackTrace();
+            }
+        }
 }
