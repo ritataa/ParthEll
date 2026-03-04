@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.LoginController">
    <children>
       <ImageView fitHeight="150.0" fitWidth="200.0" layoutX="200.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -22,8 +22,9 @@
             <TextField fx:id="emailField" layoutX="161.0" layoutY="59.0" promptText="Email" />
             <PasswordField fx:id="passwordField" layoutX="160.0" layoutY="136.0" promptText="Password" />
             <Button fx:id="loginButton" layoutX="386.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleLogin" style="-fx-background-color: #007BFF;" text="Accedi" textFill="WHITE" />
-            <Label fx:id="messageLabel" layoutX="161.0" layoutY="185.0" textFill="RED" visible="false" />
-            <Label fx:id="errorLabel" layoutX="171.0" layoutY="179.0" prefHeight="69.0" prefWidth="215.0" textFill="#f80303">
+            <Button layoutX="305.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleApriRegistrazione" style="-fx-background-color: #4B5563;" text="Registrati" textFill="WHITE" />
+            <Label fx:id="messageLabel" layoutX="161.0" layoutY="185.0" mouseTransparent="true" textFill="RED" visible="false" />
+            <Label fx:id="errorLabel" layoutX="171.0" layoutY="179.0" mouseTransparent="true" prefHeight="69.0" prefWidth="215.0" textFill="#f80303">
                <font>
                   <Font size="12.0" />
                </font>

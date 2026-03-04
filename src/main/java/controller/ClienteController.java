@@ -11,59 +11,77 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import model.PianoTariffario;
 import model.Promozione;
+import model.Utilizzo;
+import service.TelecomRepository;
+import service.UserSession;
 
 public class ClienteController {
+
+    private final TelecomRepository repository = new TelecomRepository();
 
     @FXML private Label welcomeLabel;
     @FXML private TextField numeroField;
     @FXML private TextField durataField;
-    @FXML private Button effettuaChiamataButton;
     @FXML private TextField numeroSmsField;
     @FXML private TextField testoSmsField;
-    @FXML private Button inviaSmsButton;
     @FXML private TextField datiField;
-    @FXML private Button usaDatiButton;
     @FXML private TableView<Promozione> promozioniTable;
     @FXML private TableColumn<Promozione, String> nomePromozioneColumn;
     @FXML private TableColumn<Promozione, String> descrizioneColumn;
-    @FXML private Button aderisciPromozioneButton;
-    @FXML private Button pagamentoContantiButton;
-    @FXML private Button pagamentoCartaButton;
-    @FXML private Button pagamentoBancomatButton;
-    @FXML private Button logoutButton;
-        @FXML private TextField emailClienteField;
-        @FXML private TextField passwordClienteField;
-        @FXML private TextField nomeClienteField;
-        @FXML private TextField cognomeClienteField;
-        @FXML private Button aggiungiClienteButton;
+    @FXML private Label numeroAttualeLabel;
+    @FXML private Label pianoAttivoLabel;
+    @FXML private Label chiamateUsateLabel;
+    @FXML private Label smsUsatiLabel;
+    @FXML private Label datiUsatiLabel;
+    @FXML private Label minutiResiduiLabel;
+    @FXML private Label gigaResiduiLabel;
+    @FXML private Label promozioniAttiveLabel;
 
-    private ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
+    private final ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
 
     public void initialize() {
-        // Inizializza le colonne della tabella promozioni
-        nomePromozioneColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        descrizioneColumn.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
-        
-        // Carica le promozioni di esempio
-        caricaPromozioni();
-        promozioniTable.setItems(promozioni);
+        String email = UserSession.getInstance().getCurrentEmail();
+        if (welcomeLabel != null) {
+            welcomeLabel.setText("Ciao!");
+            try {
+                String nome = repository.findNomeByEmail(email);
+                if (nome != null && !nome.isBlank()) {
+                    welcomeLabel.setText("Ciao " + nome + "!");
+                }
+            } catch (RuntimeException exception) {
+                System.err.println("Errore lettura nome cliente: " + exception.getMessage());
+            }
+        }
+
+        if (nomePromozioneColumn != null) {
+            nomePromozioneColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        }
+        if (descrizioneColumn != null) {
+            descrizioneColumn.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
+        }
+        if (promozioniTable != null) {
+            promozioniTable.setItems(promozioni);
+        }
+
+        try {
+            caricaPromozioni();
+            aggiornaSituazioneAttuale();
+        } catch (RuntimeException exception) {
+            impostaSituazioneFallback();
+            System.err.println("Errore inizializzazione area cliente: " + exception.getMessage());
+        }
     }
 
     private void caricaPromozioni() {
-        promozioni.addAll(
-            new Promozione("Super Plus", "1000 minuti, 1000 SMS, 50GB - €25/mese"),
-            new Promozione("Basic", "500 minuti, 500 SMS, 20GB - €15/mese"),
-            new Promozione("Premium", "Illimitato tutto - €35/mese"),
-            new Promozione("Weekend Special", "Minuti illimitati nel weekend - €10/mese")
-        );
+        promozioni.setAll(repository.findAllPromozioni());
     }
 
     @FXML
@@ -78,12 +96,18 @@ public class ClienteController {
 
         try {
             int min = Integer.parseInt(durata);
+            if (min <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "La durata deve essere maggiore di zero!");
+                return;
+            }
+            repository.registraChiamata(UserSession.getInstance().getCurrentEmail(), min);
             showAlert(Alert.AlertType.INFORMATION, "Chiamata", 
                      "Chiamata di " + min + " minuti al numero " + numero + " effettuata con successo!");
             
             // Pulisci i campi
             numeroField.clear();
             durataField.clear();
+            aggiornaSituazioneAttuale();
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Errore", "Inserisci una durata valida!");
         }
@@ -101,10 +125,12 @@ public class ClienteController {
 
         showAlert(Alert.AlertType.INFORMATION, "SMS", 
                  "SMS inviato al numero " + numero + " con successo!");
+        repository.registraSms(UserSession.getInstance().getCurrentEmail());
         
         // Pulisci i campi
         numeroSmsField.clear();
         testoSmsField.clear();
+        aggiornaSituazioneAttuale();
     }
 
     @FXML
@@ -118,10 +144,16 @@ public class ClienteController {
 
         try {
             int mb = Integer.parseInt(dati);
+            if (mb <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "La quantità deve essere maggiore di zero!");
+                return;
+            }
+            repository.registraDati(UserSession.getInstance().getCurrentEmail(), mb);
             showAlert(Alert.AlertType.INFORMATION, "Dati", 
-                     "Utilizzati " + mb + " MB con successo!");
+                     "Utilizzati " + mb + " GB con successo!");
             
             datiField.clear();
+            aggiornaSituazioneAttuale();
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Errore", "Inserisci una quantità valida!");
         }
@@ -136,8 +168,20 @@ public class ClienteController {
             return;
         }
 
-        showAlert(Alert.AlertType.INFORMATION, "Promozione", 
-                 "Hai aderito alla promozione: " + selezionata.getNome());
+        String email = UserSession.getInstance().getCurrentEmail();
+        try {
+            boolean added = repository.aderisciPromozione(email, selezionata.getNome());
+            if (added) {
+                showAlert(Alert.AlertType.INFORMATION, "Promozione",
+                        "Hai aderito alla promozione: " + selezionata.getNome());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Promozione",
+                        "La promozione è già attiva: " + selezionata.getNome());
+            }
+            aggiornaSituazioneAttuale();
+        } catch (RuntimeException exception) {
+            showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile aderire alla promozione selezionata.");
+        }
     }
 
     @FXML
@@ -164,6 +208,7 @@ public class ClienteController {
             // Torna alla schermata di login
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/login.fxml"));
             Parent root = loader.load();
+            UserSession.getInstance().clear();
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Scene scene = new Scene(root);
@@ -172,7 +217,94 @@ public class ClienteController {
             stage.show();
         } catch (IOException e) {
             showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile tornare al login!");
-            e.printStackTrace();
+        }
+    }
+
+    private void aggiornaSituazioneAttuale() {
+        String email = UserSession.getInstance().getCurrentEmail();
+        if (email == null || email.isBlank()) {
+            return;
+        }
+
+        Utilizzo utilizzo;
+        PianoTariffario pianoTariffario;
+        try {
+            utilizzo = repository.findUtilizzoByEmail(email);
+            pianoTariffario = repository.findPianoTariffarioByEmail(email);
+        } catch (RuntimeException exception) {
+            impostaSituazioneFallback();
+            throw exception;
+        }
+
+        if (pianoAttivoLabel != null) {
+            pianoAttivoLabel.setText(pianoTariffario == null ? "-" : pianoTariffario.getNome());
+        }
+
+        if (numeroAttualeLabel != null) {
+            numeroAttualeLabel.setText(utilizzo.getNumero() == null || utilizzo.getNumero().isBlank() ? "-" : utilizzo.getNumero());
+        }
+        if (chiamateUsateLabel != null) {
+            chiamateUsateLabel.setText(String.valueOf(utilizzo.getChiamate()));
+        }
+        if (smsUsatiLabel != null) {
+            smsUsatiLabel.setText(String.valueOf(utilizzo.getSms()));
+        }
+        if (datiUsatiLabel != null) {
+            datiUsatiLabel.setText(utilizzo.getDati() + " GB");
+        }
+
+        if (minutiResiduiLabel != null) {
+            if (pianoTariffario == null) {
+                minutiResiduiLabel.setText("-");
+            } else if (pianoTariffario.isIllimitatoMinuti()) {
+                minutiResiduiLabel.setText("Illimitati");
+            } else {
+                int residui = Math.max(0, pianoTariffario.getMinutiMensili() - utilizzo.getChiamate());
+                minutiResiduiLabel.setText(residui + " min");
+            }
+        }
+
+        if (gigaResiduiLabel != null) {
+            if (pianoTariffario == null) {
+                gigaResiduiLabel.setText("-");
+            } else if (pianoTariffario.isIllimitatoGiga()) {
+                gigaResiduiLabel.setText("Illimitati");
+            } else {
+                int residui = Math.max(0, pianoTariffario.getGigaMensili() - utilizzo.getDati());
+                gigaResiduiLabel.setText(residui + " GB");
+            }
+        }
+
+        if (promozioniAttiveLabel != null) {
+            String promo = utilizzo.getPromo();
+            promozioniAttiveLabel.setText((promo == null || promo.isBlank()) ? "Nessuna" : promo);
+        }
+    }
+
+    private void impostaSituazioneFallback() {
+        if (numeroAttualeLabel != null) {
+            numeroAttualeLabel.setText("-");
+        }
+        if (pianoAttivoLabel != null) {
+            pianoAttivoLabel.setText("-");
+        }
+        if (chiamateUsateLabel != null) {
+            chiamateUsateLabel.setText("0");
+        }
+        if (smsUsatiLabel != null) {
+            smsUsatiLabel.setText("0");
+        }
+        if (datiUsatiLabel != null) {
+            datiUsatiLabel.setText("0 GB");
+        }
+        if (minutiResiduiLabel != null) {
+            minutiResiduiLabel.setText("-");
+        }
+        if (gigaResiduiLabel != null) {
+            gigaResiduiLabel.setText("-");
+        }
+        if (promozioniAttiveLabel != null) {
+            promozioniAttiveLabel.setText("Nessuna");
         }
     }
 
@@ -184,35 +316,4 @@ public class ClienteController {
         alert.showAndWait();
     }
 
-        /**
-         * Gestisce l'aggiunta di un nuovo cliente al file CSV.
-         */
-        @FXML
-        public void handleAggiungiCliente(ActionEvent event) {
-            String email = emailClienteField.getText();
-            String password = passwordClienteField.getText();
-            String nome = nomeClienteField.getText();
-            String cognome = cognomeClienteField.getText();
-
-            if (email.isEmpty() || password.isEmpty() || nome.isEmpty() || cognome.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Attenzione", "Compila tutti i campi!");
-                return;
-            }
-
-            String ruolo = "cliente";
-            String riga = String.format("%s,%s,%s,%s,%s\n", email, password, ruolo, nome, cognome);
-            String path = "src/main/resources/data/abbonato.csv";
-
-            try (java.io.FileWriter fw = new java.io.FileWriter(path, true)) {
-                fw.write(riga);
-                showAlert(Alert.AlertType.INFORMATION, "Successo", "Cliente aggiunto correttamente!");
-                emailClienteField.clear();
-                passwordClienteField.clear();
-                nomeClienteField.clear();
-                cognomeClienteField.clear();
-            } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile aggiungere il cliente!");
-                e.printStackTrace();
-            }
-        }
 }

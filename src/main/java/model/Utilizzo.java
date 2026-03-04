@@ -1,11 +1,11 @@
 package model;
 
 public class Utilizzo {
-    private String numero;
-    private int chiamate;
-    private int sms;
-    private int dati;
-    private String promo;
+    private final String numero;
+    private final int chiamate;
+    private final int sms;
+    private final int dati;
+    private final String promo;
 
     public Utilizzo(String numero, int chiamate, int sms, int dati, String promo) {
         this.numero = numero;

@@ -9,13 +9,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import service.AuthenticationService;
+import service.UserSession;
 
 /**
  * Controller per la gestione dell'interfaccia di login dell'applicazione ParthEll.
@@ -40,9 +39,6 @@ public class LoginControllerNew {
     /** Campo di input per la password dell'utente */
     @FXML private PasswordField passwordField;
     
-    /** Bottone per effettuare il login */
-    @FXML private Button loginButton;
-
     /** Servizio di autenticazione singleton */
     private final AuthenticationService authService = AuthenticationService.getInstance();
 
@@ -51,6 +47,7 @@ public class LoginControllerNew {
      * Imposta lo stato iniziale dell'interfaccia.
      */
     public void initialize() {
+        UserSession.getInstance().clear();
         // Pulisce eventuali messaggi di errore all'avvio
         if (errorLabel != null) {
             errorLabel.setText("");
@@ -82,31 +79,29 @@ public class LoginControllerNew {
             if (userType == null) {
                 throw new AuthenticationException("Email o password non validi.");
             }
+
+            UserSession.getInstance().setCurrentUser(email.trim(), userType);
             
             // Pulisce il messaggio di errore
             errorLabel.setText("");
             
             // Routing basato sul tipo di utente
             switch (userType) {
-                case "admin":
-                    loadScene(event, "/view/admin.fxml", "ParthEll - Pannello Admin");
-                    break;
-                case "cliente":
-                    loadScene(event, "/view/cliente.fxml", "ParthEll - Area Cliente");
-                    break;
-                default:
-                    throw new AuthenticationException("Tipo di utente non riconosciuto: " + userType);
+                case "admin" -> loadScene(event, "/view/admin.fxml", "ParthEll - Pannello Admin");
+                case "cliente" -> loadScene(event, "/view/cliente.fxml", "ParthEll - Area Cliente");
+                default -> throw new AuthenticationException("Tipo di utente non riconosciuto: " + userType);
             }
             
         } catch (AuthenticationException e) {
             errorLabel.setText(e.getMessage());
         } catch (IOException e) {
             errorLabel.setText("Errore nel caricamento della schermata.");
-            // Log dell'errore per debugging (in produzione usare un logger)
             System.err.println("Errore caricamento schermata: " + e.getMessage());
+            logExceptionDetails(e);
         } catch (Exception e) {
             errorLabel.setText("Errore imprevisto durante il login.");
             System.err.println("Errore imprevisto: " + e.getMessage());
+            logExceptionDetails(e);
         }
     }
 
@@ -130,19 +125,12 @@ public class LoginControllerNew {
         stage.show();
     }
 
-    /**
-     * Mostra un dialog di alert all'utente.
-     * Metodo helper per visualizzare messaggi di errore o informazione.
-     * 
-     * @param alertType il tipo di alert (ERROR, WARNING, INFORMATION)
-     * @param title il titolo del dialog
-     * @param message il messaggio da visualizzare
-     */
-    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private void logExceptionDetails(Exception exception) {
+        System.err.println("Dettagli eccezione: " + exception);
+        Throwable cause = exception.getCause();
+        if (cause != null) {
+            System.err.println("Causa: " + cause);
+        }
     }
+
 }

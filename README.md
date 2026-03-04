@@ -36,3 +36,14 @@ Il progetto deve essere sviluppato secondo le seguenti linee:
 
 E' possibile costruire l'applicazione standalone con supporto grafico tramite l'utilizzo di strumenti per la realizzazione di interfacce grafiche presenti in molti IDE (GUI Designer in IntelliJ e
 WindowsBuilder in Eclipse) oppure utilizzare tools compatibili con JavaFx come Scene Builder (compatibile con gli IDE).
+
+## Persistenza dati (JDBC)
+
+L'applicazione usa JDBC con database relazionale locale SQLite.
+
+- Driver: `org.xerial:sqlite-jdbc`
+- File database: `parth.db` (creato automaticamente alla prima esecuzione)
+- Inizializzazione schema e seed dati: `service.DatabaseManager`
+- Accesso ai dati applicativi: `service.TelecomRepository`
+
+I file CSV in `src/main/resources/data` sono stati rimossi: lettura/scrittura utenti, promozioni e utilizzo avvengono tramite query SQL (`Connection`, `PreparedStatement`, `ResultSet`).

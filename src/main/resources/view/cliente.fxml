@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ClienteController">
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ClienteController">
    <children>
       <Label fx:id="welcomeLabel" layoutX="250.0" layoutY="30.0" text="Benvenuto Cliente" style="-fx-font-size: 20px;" />
       
@@ -67,6 +67,64 @@
                               <Button fx:id="pagamentoContantiButton" onAction="#handlePagamentoContanti" text="Contanti" />
                               <Button fx:id="pagamentoCartaButton" onAction="#handlePagamentoCarta" text="Carta" />
                               <Button fx:id="pagamentoBancomatButton" onAction="#handlePagamentoBancomat" text="Bancomat" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+
+            <Tab text="Situazione Attuale">
+               <content>
+                  <VBox spacing="12.0" style="-fx-padding: 16;">
+                     <children>
+                        <Label text="Riepilogo abbonato" style="-fx-font-size: 16px;" />
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Numero:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="numeroAttualeLabel" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Piano attivo:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="pianoAttivoLabel" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Minuti usati:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="chiamateUsateLabel" text="0" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="SMS inviati:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="smsUsatiLabel" text="0" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Dati usati:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="datiUsatiLabel" text="0 GB" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Minuti residui:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="minutiResiduiLabel" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Giga residui:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="gigaResiduiLabel" text="-" />
+                           </children>
+                        </HBox>
+                        <HBox spacing="8.0">
+                           <children>
+                              <Label text="Promozioni attive:" style="-fx-font-weight: bold;" />
+                              <Label fx:id="promozioniAttiveLabel" text="Nessuna" wrapText="true" prefWidth="340.0" />
                            </children>
                         </HBox>
                      </children>

@@ -16,7 +16,7 @@
 <?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="561.0" prefWidth="635.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.AdminController">
+<AnchorPane prefHeight="561.0" prefWidth="635.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.AdminController">
    <children>
       <Label layoutX="253.0" layoutY="12.0" style="-fx-font-size: 24px; -fx-font-weight: bold;" text="Admin Panel ">
          <textFill>
@@ -49,19 +49,6 @@
                            </font>
                         </Label>
                         <TextField fx:id="searchFieldAbbonati" prefHeight="25.0" prefWidth="292.0" promptText="Numero" />
-                        <Label text="Aggiungi abbonato" textFill="WHITE">
-                           <font>
-                              <Font name="System Bold Italic" size="13.0" />
-                           </font>
-                        </Label>
-                        <HBox spacing="10.0">
-                           <children>
-                              <TextField fx:id="nomeField" promptText="Nome" />
-                              <TextField fx:id="cognomeField" promptText="Cognome" />
-                              <TextField fx:id="numField" promptText="Numero" />
-                              <Button fx:id="aggiungiAbbonatoButton" onAction="#handleAggiungiAbbonato" text="+" />
-                           </children>
-                        </HBox>
                         <TableView fx:id="abbonatiTable" prefHeight="423.0" prefWidth="564.0" style="-fx-background-color: #1C1C1E; -fx-text-background-color: white; -fx-table-cell-border-color: #2C2C2E; -fx-selection-bar: #007AFF; -fx-selection-bar-text: white;">
                            <columns>
                               <TableColumn fx:id="nomeColumn" prefWidth="98.72940063476562" style="-fx-text-background-color: black;" text="Nome" />
