@@ -46,4 +46,7 @@ L'applicazione usa JDBC con database relazionale locale SQLite.
 - Inizializzazione schema e seed dati: `service.DatabaseManager`
 - Accesso ai dati applicativi: `service.TelecomRepository`
 
-I file CSV in `src/main/resources/data` sono stati rimossi: lettura/scrittura utenti, promozioni e utilizzo avvengono tramite query SQL (`Connection`, `PreparedStatement`, `ResultSet`).
+
+## Avvio
+
+per runnarlo, nel terminale scrivere: mvn -q -DskipTests compile && mvn -q -DskipTests javafx:run
