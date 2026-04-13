@@ -1,0 +1,182 @@
+package controller.payment;
+
+import java.util.function.Supplier;
+
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import service.AlertManager;
+import service.FormInputValidator;
+import service.UIFormatsService;
+
+public class PaymentDialogFactory {
+
+    private final UIFormatsService uiFormatsService;
+    private final FormInputValidator validator;
+    private final AlertManager alertManager;
+
+    public PaymentDialogFactory(
+        UIFormatsService uiFormatsService,
+        FormInputValidator validator,
+        AlertManager alertManager
+    ) {
+        this.uiFormatsService = uiFormatsService;
+        this.validator = validator;
+        this.alertManager = alertManager;
+    }
+
+    public void showCashDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
+        Stage dialog = createDialog(owner, "Pagamento in Contanti");
+
+        Label totaleLabel = new Label("Totale: " + uiFormatsService.formatEuro(totale));
+        TextField contantiField = new TextField();
+        contantiField.setPromptText("Importo ricevuto");
+        Label restoLabel = new Label("Resto: 0.00 EUR");
+
+        Button calcolaRestoButton = new Button("Calcola Resto");
+        calcolaRestoButton.setOnAction(e -> {
+            try {
+                double ricevuto = Double.parseDouble(contantiField.getText().trim());
+                double resto = ricevuto - totale;
+                if (resto < 0) {
+                    restoLabel.setText("Importo insufficiente: mancano " + String.format("%.2f", Math.abs(resto)) + " EUR");
+                    return;
+                }
+                restoLabel.setText("Resto: " + uiFormatsService.formatEuro(resto));
+            } catch (NumberFormatException ex) {
+                restoLabel.setText("Inserisci un importo valido.");
+            }
+        });
+
+        Button confermaButton = new Button("Conferma Pagamento");
+        confermaButton.setOnAction(e -> {
+            try {
+                double ricevuto = Double.parseDouble(contantiField.getText().trim());
+                if (ricevuto < totale) {
+                    alertManager.show(Alert.AlertType.WARNING, "Pagamento", "Importo contanti insufficiente.");
+                    return;
+                }
+                if (!confermaPagamentoSelezionato.get()) {
+                    return;
+                }
+                alertManager.show(Alert.AlertType.INFORMATION, "Pagamento", "Pagamento in contanti confermato.");
+                dialog.close();
+            } catch (NumberFormatException ex) {
+                alertManager.show(Alert.AlertType.ERROR, "Errore", "Inserisci un importo valido.");
+            }
+        });
+
+        Button annullaButton = new Button("Annulla");
+        annullaButton.setOnAction(e -> dialog.close());
+
+        HBox pulsanti = new HBox(10, calcolaRestoButton, confermaButton, annullaButton);
+        VBox root = new VBox(12, totaleLabel, contantiField, restoLabel, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 460, 200));
+        dialog.showAndWait();
+    }
+
+    public void showCardDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
+        Stage dialog = createDialog(owner, "Pagamento con Carta");
+
+        Label totaleLabel = new Label("Totale: " + uiFormatsService.formatEuro(totale));
+        TextField intestatarioField = new TextField();
+        intestatarioField.setPromptText("Nome Intestatario");
+        TextField numeroCartaField = new TextField();
+        numeroCartaField.setPromptText("Numero Carta (16 cifre)");
+        TextField scadenzaField = new TextField();
+        scadenzaField.setPromptText("Scadenza (MM/AA)");
+        TextField cvvField = new TextField();
+        cvvField.setPromptText("CVV (3 cifre)");
+
+        Button pagaOraButton = new Button("Paga Ora");
+        pagaOraButton.setOnAction(e -> {
+            String intestatario = intestatarioField.getText() == null ? "" : intestatarioField.getText().trim();
+            String numeroCarta = numeroCartaField.getText() == null ? "" : numeroCartaField.getText().trim();
+            String scadenza = scadenzaField.getText() == null ? "" : scadenzaField.getText().trim();
+            String cvv = cvvField.getText() == null ? "" : cvvField.getText().trim();
+
+            if (!validator.isValidCardData(intestatario, numeroCarta, scadenza, cvv)) {
+                alertManager.show(Alert.AlertType.WARNING, "Pagamento", "Controlla i dati carta: numero 16 cifre, scadenza MM/AA, CVV 3 cifre.");
+                return;
+            }
+
+            if (!confermaPagamentoSelezionato.get()) {
+                return;
+            }
+
+            alertManager.show(Alert.AlertType.INFORMATION, "Pagamento", "Transazione con carta completata. Totale addebitato: " + uiFormatsService.formatEuro(totale));
+            dialog.close();
+        });
+
+        Button indietroButton = new Button("Indietro");
+        indietroButton.setOnAction(e -> dialog.close());
+
+        HBox pulsanti = new HBox(10, pagaOraButton, indietroButton);
+        VBox root = new VBox(10, totaleLabel, intestatarioField, numeroCartaField, scadenzaField, cvvField, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 440, 300));
+        dialog.showAndWait();
+    }
+
+    public void showBancomatDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
+        Stage dialog = createDialog(owner, "Pagamento Bancomat (POS)");
+
+        Label totaleLabel = new Label("Importo da pagare: " + uiFormatsService.formatEuro(totale));
+        Button simulaLetturaButton = new Button("Simula Lettura Carta");
+        Label pinLabel = new Label("Inserisci PIN");
+        PasswordField pinField = new PasswordField();
+        pinField.setDisable(true);
+
+        simulaLetturaButton.setOnAction(e -> pinField.setDisable(false));
+
+        Button autorizzaButton = new Button("Autorizza Transazione");
+        autorizzaButton.setOnAction(e -> {
+            if (pinField.isDisabled()) {
+                alertManager.show(Alert.AlertType.WARNING, "POS", "Prima simula la lettura della carta.");
+                return;
+            }
+            String pin = pinField.getText() == null ? "" : pinField.getText().trim();
+            if (!pin.matches("\\d{4,6}")) {
+                alertManager.show(Alert.AlertType.WARNING, "POS", "PIN non valido.");
+                return;
+            }
+            if (!confermaPagamentoSelezionato.get()) {
+                return;
+            }
+            alertManager.show(Alert.AlertType.INFORMATION, "POS", "Transazione autorizzata. Totale addebitato: " + uiFormatsService.formatEuro(totale));
+            dialog.close();
+        });
+
+        Button annullaButton = new Button("Annulla");
+        annullaButton.setOnAction(e -> dialog.close());
+
+        HBox pinBox = new HBox(8, pinLabel, pinField);
+        HBox pulsanti = new HBox(10, autorizzaButton, annullaButton);
+        VBox root = new VBox(12, totaleLabel, simulaLetturaButton, pinBox, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 430, 220));
+        dialog.showAndWait();
+    }
+
+    private Stage createDialog(Window owner, String titolo) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle(titolo);
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        return dialog;
+    }
+}
