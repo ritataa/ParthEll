@@ -17,14 +17,18 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
@@ -46,6 +50,19 @@ public class ClienteController {
     @FXML private TableView<Promozione> promozioniTable;
     @FXML private TableColumn<Promozione, String> nomePromozioneColumn;
     @FXML private TableColumn<Promozione, String> descrizioneColumn;
+    @FXML private TableView<Pagamento> storicoPagamentiTable;
+    @FXML private TableColumn<Pagamento, String> mesePagamentoColumn;
+    @FXML private TableColumn<Pagamento, Integer> annoPagamentoColumn;
+    @FXML private TableColumn<Pagamento, Double> importoPagamentoColumn;
+    @FXML private TableColumn<Pagamento, String> promoPagamentoColumn;
+    @FXML private TableColumn<Pagamento, String> statoPagamentoColumn;
+    @FXML private VBox storicoClassicoPane;
+    @FXML private VBox storicoDettaglioPane;
+    @FXML private Label dettaglioMeseLabel;
+    @FXML private Label dettaglioAnnoLabel;
+    @FXML private Label dettaglioImportoLabel;
+    @FXML private Label dettaglioStatoLabel;
+    @FXML private TextArea dettaglioPromoArea;
     @FXML private Label numeroAttualeLabel;
     @FXML private Label pianoAttivoLabel;
     @FXML private Label chiamateUsateLabel;
@@ -81,9 +98,94 @@ public class ClienteController {
             promozioniTable.setItems(promozioni);
         }
 
+        if (mesePagamentoColumn != null) {
+            mesePagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("mese"));
+        }
+        if (annoPagamentoColumn != null) {
+            annoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("anno"));
+        }
+        if (importoPagamentoColumn != null) {
+            importoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("importo"));
+            importoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                        return;
+                    }
+                    setText(String.format("%.2f EUR", item));
+                }
+            });
+        }
+        if (promoPagamentoColumn != null) {
+            promoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("promo"));
+            promoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setText(null);
+                        setStyle("");
+                        return;
+                    }
+
+                    String testo = item == null || item.isBlank() ? "Nessuna promo" : item.replace(", ", "\n");
+                    setText(testo);
+                    setWrapText(true);
+                    setStyle("-fx-alignment: CENTER-LEFT;");
+                }
+            });
+        }
+        if (statoPagamentoColumn != null) {
+            statoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("stato"));
+            statoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                        return;
+                    }
+                    setText(item);
+                    if ("Da pagare".equalsIgnoreCase(item.trim())) {
+                        setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            });
+        }
+        if (storicoPagamentiTable != null) {
+            storicoPagamentiTable.setFixedCellSize(-1);
+            storicoPagamentiTable.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
+                @Override
+                protected void updateItem(Pagamento item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setStyle("");
+                        setPrefHeight(Region.USE_COMPUTED_SIZE);
+                        return;
+                    }
+                    setPrefHeight(Region.USE_COMPUTED_SIZE);
+                    if ("Da pagare".equalsIgnoreCase(item.getStato())) {
+                        setStyle("-fx-text-fill: red;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            });
+        }
+
         try {
+            if (email != null && !email.isBlank()) {
+                repository.aggiornaPagamentoMeseCorrente(email);
+            }
             caricaPromozioni();
             aggiornaSituazioneAttuale();
+            caricaStoricoPagamenti();
         } catch (RuntimeException exception) {
             impostaSituazioneFallback();
             System.err.println("Errore inizializzazione area cliente: " + exception.getMessage());
@@ -92,6 +194,65 @@ public class ClienteController {
 
     private void caricaPromozioni() {
         promozioni.setAll(repository.findAllPromozioni());
+    }
+
+    private void caricaStoricoPagamenti() {
+        if (storicoPagamentiTable == null) {
+            return;
+        }
+        String email = UserSession.getInstance().getCurrentEmail();
+        if (email == null || email.isBlank()) {
+            storicoPagamentiTable.setItems(FXCollections.observableArrayList());
+            return;
+        }
+        storicoPagamentiTable.setItems(repository.getStoricoPagamenti(email));
+    }
+
+    @FXML
+    public void handleMostraDettagliStorico(ActionEvent event) {
+        Pagamento selezionato = storicoPagamentiTable == null ? null : storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        if (selezionato == null) {
+            showAlert(Alert.AlertType.WARNING, "Storico Pagamenti", "Seleziona una riga per vedere i dettagli.");
+            return;
+        }
+
+        if (storicoClassicoPane != null) {
+            storicoClassicoPane.setVisible(false);
+            storicoClassicoPane.setManaged(false);
+        }
+        if (storicoDettaglioPane != null) {
+            storicoDettaglioPane.setVisible(true);
+            storicoDettaglioPane.setManaged(true);
+        }
+
+        if (dettaglioMeseLabel != null) {
+            dettaglioMeseLabel.setText(selezionato.getMese());
+        }
+        if (dettaglioAnnoLabel != null) {
+            dettaglioAnnoLabel.setText(String.valueOf(selezionato.getAnno()));
+        }
+        if (dettaglioImportoLabel != null) {
+            dettaglioImportoLabel.setText(String.format("%.2f EUR", selezionato.getImporto()));
+        }
+        if (dettaglioStatoLabel != null) {
+            dettaglioStatoLabel.setText(selezionato.getStato());
+        }
+        if (dettaglioPromoArea != null) {
+            String promo = selezionato.getPromo();
+            dettaglioPromoArea.setText(promo == null || promo.isBlank() ? "Nessuna promo" : promo);
+        }
+    }
+
+    @FXML
+    public void handleIndietroStorico(ActionEvent event) {
+        if (storicoDettaglioPane != null) {
+            storicoDettaglioPane.setVisible(false);
+            storicoDettaglioPane.setManaged(false);
+        }
+        if (storicoClassicoPane != null) {
+            storicoClassicoPane.setVisible(true);
+            storicoClassicoPane.setManaged(true);
+        }
     }
 
     @FXML
@@ -181,6 +342,7 @@ public class ClienteController {
         String email = UserSession.getInstance().getCurrentEmail();
         try {
             boolean added = repository.aderisciPromozione(email, selezionata.getNome());
+            repository.aggiornaPagamentoMeseCorrente(email);
             if (added) {
                 showAlert(Alert.AlertType.INFORMATION, "Promozione",
                         "Hai aderito alla promozione: " + selezionata.getNome());
@@ -189,8 +351,36 @@ public class ClienteController {
                         "La promozione è già attiva: " + selezionata.getNome());
             }
             aggiornaSituazioneAttuale();
+            caricaStoricoPagamenti();
         } catch (RuntimeException exception) {
             showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile aderire alla promozione selezionata.");
+        }
+    }
+
+    @FXML
+    public void handleDisdiciPromozione(ActionEvent event) {
+        Promozione selezionata = promozioniTable.getSelectionModel().getSelectedItem();
+
+        if (selezionata == null) {
+            showAlert(Alert.AlertType.WARNING, "Attenzione", "Seleziona una promozione da disdire!");
+            return;
+        }
+
+        String email = UserSession.getInstance().getCurrentEmail();
+        try {
+            boolean removed = repository.disdiciPromozione(email, selezionata.getNome());
+            repository.aggiornaPagamentoMeseCorrente(email);
+            if (removed) {
+                showAlert(Alert.AlertType.INFORMATION, "Promozione",
+                        "Hai disdetto la promozione: " + selezionata.getNome());
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Promozione",
+                        "La promozione selezionata non risulta attiva.");
+            }
+            aggiornaSituazioneAttuale();
+            caricaStoricoPagamenti();
+        } catch (RuntimeException exception) {
+            showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile disdire la promozione selezionata.");
         }
     }
 
@@ -328,6 +518,7 @@ public class ClienteController {
         if (email == null || email.isBlank()) {
             return 0.0;
         }
+        repository.aggiornaPagamentoMeseCorrente(email);
         return repository.calcolaTotaleMensileByEmail(email);
     }
 
@@ -370,6 +561,9 @@ public class ClienteController {
                 double ricevuto = Double.parseDouble(contantiField.getText().trim());
                 if (ricevuto < totale) {
                     showAlert(Alert.AlertType.WARNING, "Pagamento", "Importo contanti insufficiente.");
+                    return;
+                }
+                if (!confermaPagamentoSelezionato()) {
                     return;
                 }
                 showAlert(Alert.AlertType.INFORMATION, "Pagamento", "Pagamento in contanti confermato.");
@@ -415,6 +609,10 @@ public class ClienteController {
                 return;
             }
 
+            if (!confermaPagamentoSelezionato()) {
+                return;
+            }
+
             showAlert(Alert.AlertType.INFORMATION, "Pagamento", "Transazione con carta completata. Totale addebitato: " + String.format("%.2f", totale) + " EUR");
             dialog.close();
         });
@@ -452,6 +650,9 @@ public class ClienteController {
                 showAlert(Alert.AlertType.WARNING, "POS", "PIN non valido.");
                 return;
             }
+            if (!confermaPagamentoSelezionato()) {
+                return;
+            }
             showAlert(Alert.AlertType.INFORMATION, "POS", "Transazione autorizzata. Totale addebitato: " + String.format("%.2f", totale) + " EUR");
             dialog.close();
         });
@@ -466,6 +667,39 @@ public class ClienteController {
 
         dialog.setScene(new Scene(root, 430, 220));
         dialog.showAndWait();
+    }
+
+    private boolean confermaPagamentoSelezionato() {
+        String email = UserSession.getInstance().getCurrentEmail();
+        if (email == null || email.isBlank()) {
+            showAlert(Alert.AlertType.ERROR, "Pagamento", "Sessione utente non valida.");
+            return false;
+        }
+
+        if (storicoPagamentiTable == null) {
+            showAlert(Alert.AlertType.ERROR, "Pagamento", "Tabella storico non disponibile.");
+            return false;
+        }
+
+        Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        if (selezionato == null) {
+            showAlert(Alert.AlertType.WARNING, "Pagamento", "Seleziona una riga dello storico da saldare.");
+            return false;
+        }
+
+        if (!"Da pagare".equalsIgnoreCase(selezionato.getStato())) {
+            showAlert(Alert.AlertType.INFORMATION, "Pagamento", "La riga selezionata risulta gia confermata.");
+            return false;
+        }
+
+        boolean saldato = repository.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
+        if (!saldato) {
+            showAlert(Alert.AlertType.ERROR, "Pagamento", "Nessun pagamento aggiornato sul database.");
+            return false;
+        }
+
+        caricaStoricoPagamenti();
+        return true;
     }
 
 }

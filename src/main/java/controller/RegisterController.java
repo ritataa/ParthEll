@@ -51,6 +51,7 @@ public class RegisterController {
 
         try {
             repository.registerCliente(email, password, nome, cognome, residenza, numero, piano);
+            repository.inizializzaStoricoNuovoUtente(email);
             showAlert(Alert.AlertType.INFORMATION, "Registrazione", "Account creato con successo!");
             tornaAlLogin(event);
         } catch (RuntimeException exception) {

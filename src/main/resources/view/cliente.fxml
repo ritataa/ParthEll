@@ -51,7 +51,12 @@
                               <TableColumn fx:id="descrizioneColumn" text="Descrizione" />
                            </columns>
                         </TableView>
-                        <Button fx:id="aderisciPromozioneButton" onAction="#handleAderisciPromozione" text="Aderisci Promozione" />
+                        <HBox spacing="10.0">
+                           <children>
+                              <Button fx:id="aderisciPromozioneButton" onAction="#handleAderisciPromozione" text="Aderisci Promozione" />
+                              <Button fx:id="disdiciPromozioneButton" onAction="#handleDisdiciPromozione" text="Disdici Promozione" />
+                           </children>
+                        </HBox>
                      </children>
                   </VBox>
                </content>
@@ -129,6 +134,71 @@
                         </HBox>
                      </children>
                   </VBox>
+               </content>
+            </Tab>
+
+            <Tab text="Storico Pagamenti">
+               <content>
+                  <StackPane style="-fx-padding: 10;">
+                     <children>
+                        <VBox fx:id="storicoClassicoPane" spacing="10.0" visible="true" managed="true">
+                           <children>
+                              <Label text="Storico Pagamenti Mensili" style="-fx-font-size: 16px;" />
+                              <TableView fx:id="storicoPagamentiTable" prefHeight="320.0">
+                                 <columns>
+                                    <TableColumn fx:id="mesePagamentoColumn" text="Mese" prefWidth="120.0" />
+                                    <TableColumn fx:id="annoPagamentoColumn" text="Anno" prefWidth="90.0" />
+                                    <TableColumn fx:id="importoPagamentoColumn" text="Importo" prefWidth="120.0" />
+                                    <TableColumn fx:id="promoPagamentoColumn" text="Promo" prefWidth="160.0" />
+                                    <TableColumn fx:id="statoPagamentoColumn" text="Stato" prefWidth="120.0" />
+                                 </columns>
+                              </TableView>
+                              <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                                 <children>
+                                    <Button fx:id="dettagliStoricoButton" onAction="#handleMostraDettagliStorico" text="Dettagli" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <VBox fx:id="storicoDettaglioPane" spacing="12.0" visible="false" managed="false" style="-fx-background-color: #1C1C1E; -fx-background-radius: 8; -fx-padding: 18;">
+                           <children>
+                              <Label text="Dettaglio Pagamento" style="-fx-font-size: 18px; -fx-font-weight: bold;" textFill="WHITE" />
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Mese:" textFill="WHITE" />
+                                    <Label fx:id="dettaglioMeseLabel" text="-" textFill="WHITE" />
+                                 </children>
+                              </HBox>
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Anno:" textFill="WHITE" />
+                                    <Label fx:id="dettaglioAnnoLabel" text="-" textFill="WHITE" />
+                                 </children>
+                              </HBox>
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Importo:" textFill="WHITE" />
+                                    <Label fx:id="dettaglioImportoLabel" text="-" textFill="WHITE" />
+                                 </children>
+                              </HBox>
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Stato:" textFill="WHITE" />
+                                    <Label fx:id="dettaglioStatoLabel" text="-" textFill="WHITE" />
+                                 </children>
+                              </HBox>
+                              <Label text="Promo completa" textFill="WHITE" />
+                              <TextArea fx:id="dettaglioPromoArea" editable="false" wrapText="true" prefHeight="150.0" />
+                              <HBox alignment="CENTER_RIGHT">
+                                 <children>
+                                    <Button fx:id="indietroStoricoButton" onAction="#handleIndietroStorico" text="Indietro" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </StackPane>
                </content>
             </Tab>
          </tabs>

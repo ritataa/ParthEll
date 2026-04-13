@@ -86,6 +86,21 @@ public final class DatabaseManager {
                 """);
 
             statement.execute("""
+                CREATE TABLE IF NOT EXISTS pagamenti (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_abbonato TEXT NOT NULL,
+                    mese TEXT NOT NULL,
+                    anno INTEGER NOT NULL,
+                    importo REAL NOT NULL,
+                    stato TEXT NOT NULL,
+                    promo TEXT,
+                    FOREIGN KEY (id_abbonato) REFERENCES abbonato(email)
+                )
+                """);
+            migratePagamentiPromo(connection);
+            seedPagamentiPerTutti(connection);
+
+            statement.execute("""
                 CREATE TABLE IF NOT EXISTS utilizzo (
                     numero TEXT PRIMARY KEY,
                     nome TEXT,
@@ -100,6 +115,7 @@ public final class DatabaseManager {
             migrateLegacyPromoData(connection);
             migrateUtilizzoAnagrafica(connection);
             seedDataIfNeeded(connection);
+            seedPagamentiPerTutti(connection);
             normalizePianiAbbonati(connection);
         } catch (SQLException exception) {
             throw new RuntimeException("Errore durante inizializzazione database", exception);
@@ -168,6 +184,7 @@ public final class DatabaseManager {
                 insertAbbonatoPromozioneSeed(statement, "sara@gmail.com", "Amazon Prime");
             }
         }
+
     }
 
     private boolean isTableEmpty(Connection connection, String tableName) throws SQLException {
@@ -256,6 +273,93 @@ public final class DatabaseManager {
         statement.setString(1, email);
         statement.setString(2, nomePromozione);
         statement.executeUpdate();
+    }
+
+    private void insertPagamentoSeed(
+        PreparedStatement statement,
+        String idAbbonato,
+        String mese,
+        int anno,
+        double importo,
+        String stato,
+        String promo
+    ) throws SQLException {
+        statement.setString(1, idAbbonato);
+        statement.setString(2, mese);
+        statement.setInt(3, anno);
+        statement.setDouble(4, importo);
+        statement.setString(5, stato);
+        statement.setString(6, promo);
+        statement.executeUpdate();
+    }
+
+    private void seedPagamentiPerTutti(Connection connection) throws SQLException {
+        String selectEmailSql = "SELECT email FROM abbonato";
+        String countSql = "SELECT COUNT(*) FROM pagamenti WHERE id_abbonato = ?";
+        String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectEmailSql);
+             ResultSet emailResultSet = selectStatement.executeQuery();
+             PreparedStatement countStatement = connection.prepareStatement(countSql);
+             PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
+
+            while (emailResultSet.next()) {
+                String email = emailResultSet.getString("email");
+                countStatement.setString(1, email);
+                try (ResultSet countResultSet = countStatement.executeQuery()) {
+                    int count = countResultSet.next() ? countResultSet.getInt(1) : 0;
+                    if (count > 0) {
+                        continue;
+                    }
+                }
+
+                String promoSnapshot = getPromozioniAttiveString(connection, email);
+
+                insertPagamentoSeed(insertStatement, email, "Gennaio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+                insertPagamentoSeed(insertStatement, email, "Febbraio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+                insertPagamentoSeed(insertStatement, email, "Marzo", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+                insertPagamentoSeed(insertStatement, email, "Aprile", 2026, 24.99, "Da pagare", promoSnapshot);
+            }
+        }
+    }
+
+    private void migratePagamentiPromo(Connection connection) throws SQLException {
+        if (hasColumn(connection, "pagamenti", "promo")) {
+            return;
+        }
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("ALTER TABLE pagamenti ADD COLUMN promo TEXT");
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement("""
+            UPDATE pagamenti
+            SET promo = COALESCE((
+                SELECT GROUP_CONCAT(ap.promozione_nome, ', ')
+                FROM abbonato_promozione ap
+                WHERE ap.email = pagamenti.id_abbonato
+            ), '')
+            WHERE promo IS NULL OR TRIM(promo) = ''
+            """)) {
+            statement.executeUpdate();
+        }
+    }
+
+    private String getPromozioniAttiveString(Connection connection, String email) throws SQLException {
+        String sql = """
+            SELECT COALESCE(GROUP_CONCAT(promozione_nome, ', '), '') AS promo
+            FROM abbonato_promozione
+            WHERE email = ?
+            """;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("promo");
+                }
+                return "";
+            }
+        }
     }
 
     private void migrateLegacyPromoData(Connection connection) throws SQLException {

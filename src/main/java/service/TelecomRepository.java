@@ -7,7 +7,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import model.Abbonato;
+import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
@@ -219,6 +222,18 @@ public class TelecomRepository {
         }
     }
 
+    public boolean disdiciPromozione(String email, String nomePromozione) {
+        String sql = "DELETE FROM abbonato_promozione WHERE email = ? AND promozione_nome = ?";
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            statement.setString(2, nomePromozione);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore disdetta promozione", exception);
+        }
+    }
+
     public Utilizzo findUtilizzoByEmail(String email) {
         String sql = """
             SELECT
@@ -299,6 +314,284 @@ public class TelecomRepository {
         } catch (SQLException exception) {
             throw new RuntimeException("Errore calcolo totale mensile", exception);
         }
+    }
+
+    public void aggiornaPagamentoMeseCorrente(String email) {
+        double totaleCorrente = calcolaTotaleMensileByEmail(email);
+        String promoCorrente = getPromozioniAttiveString(email);
+        String selectSql = """
+            SELECT mese, anno, stato
+            FROM pagamenti
+            WHERE id_abbonato = ?
+            ORDER BY anno ASC,
+                CASE mese
+                    WHEN 'Gennaio' THEN 1
+                    WHEN 'Febbraio' THEN 2
+                    WHEN 'Marzo' THEN 3
+                    WHEN 'Aprile' THEN 4
+                    WHEN 'Maggio' THEN 5
+                    WHEN 'Giugno' THEN 6
+                    WHEN 'Luglio' THEN 7
+                    WHEN 'Agosto' THEN 8
+                    WHEN 'Settembre' THEN 9
+                    WHEN 'Ottobre' THEN 10
+                    WHEN 'Novembre' THEN 11
+                    WHEN 'Dicembre' THEN 12
+                    ELSE 99
+                END ASC
+            """;
+        String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
+        String updateSql = "UPDATE pagamenti SET importo = ?, promo = ?, stato = 'Da pagare' WHERE id_abbonato = ? AND mese = ? AND anno = ?";
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement selectStatement = connection.prepareStatement(selectSql);
+             PreparedStatement insertStatement = connection.prepareStatement(insertSql);
+             PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
+            selectStatement.setString(1, email);
+
+            String meseTarget = null;
+            int annoTarget = 0;
+            boolean rigaDaAggiornare = false;
+
+            try (ResultSet rs = selectStatement.executeQuery()) {
+                while (rs.next()) {
+                    String stato = rs.getString("stato");
+                    String meseCorrente = rs.getString("mese");
+                    int annoCorrente = rs.getInt("anno");
+
+                    if (rigaDaAggiornare) {
+                        continue;
+                    }
+
+                    if (!isPagamentoConfermato(stato)) {
+                        meseTarget = meseCorrente;
+                        annoTarget = annoCorrente;
+                        rigaDaAggiornare = true;
+                    }
+                }
+            }
+
+            if (rigaDaAggiornare) {
+                updateStatement.setDouble(1, totaleCorrente);
+                updateStatement.setString(2, promoCorrente);
+                updateStatement.setString(3, email);
+                updateStatement.setString(4, meseTarget);
+                updateStatement.setInt(5, annoTarget);
+                updateStatement.executeUpdate();
+                return;
+            }
+
+            String[] ultimoPagamento = getUltimoPagamentoConfermato(email);
+            String meseNuovo;
+            int annoNuovo;
+            if (ultimoPagamento == null) {
+                meseNuovo = getMeseItaliano(java.time.LocalDate.now().getMonthValue());
+                annoNuovo = java.time.LocalDate.now().getYear();
+            } else {
+                meseNuovo = getMeseSuccessivo(ultimoPagamento[0]);
+                annoNuovo = Integer.parseInt(ultimoPagamento[1]);
+                if ("Gennaio".equals(meseNuovo)) {
+                    annoNuovo++;
+                }
+            }
+
+            insertStatement.setString(1, email);
+            insertStatement.setString(2, meseNuovo);
+            insertStatement.setInt(3, annoNuovo);
+            insertStatement.setDouble(4, totaleCorrente);
+            insertStatement.setString(5, "Da pagare");
+            insertStatement.setString(6, promoCorrente);
+            insertStatement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore aggiornamento pagamento mese corrente", exception);
+        }
+    }
+
+    public ObservableList<Pagamento> getStoricoPagamenti(String emailAbbonato) {
+        ObservableList<Pagamento> storico = FXCollections.observableArrayList();
+        String sql = """
+            SELECT p.id, p.id_abbonato, p.mese, p.anno, p.importo, p.stato, p.promo
+            FROM pagamenti p
+            WHERE p.id_abbonato = ?
+            ORDER BY p.anno DESC,
+                CASE p.mese
+                    WHEN 'Gennaio' THEN 1
+                    WHEN 'Febbraio' THEN 2
+                    WHEN 'Marzo' THEN 3
+                    WHEN 'Aprile' THEN 4
+                    WHEN 'Maggio' THEN 5
+                    WHEN 'Giugno' THEN 6
+                    WHEN 'Luglio' THEN 7
+                    WHEN 'Agosto' THEN 8
+                    WHEN 'Settembre' THEN 9
+                    WHEN 'Ottobre' THEN 10
+                    WHEN 'Novembre' THEN 11
+                    WHEN 'Dicembre' THEN 12
+                    ELSE 99
+                END DESC
+            """;
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, emailAbbonato);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    storico.add(new Pagamento(
+                        rs.getInt("id"),
+                        rs.getString("id_abbonato"),
+                        rs.getString("mese"),
+                        rs.getInt("anno"),
+                        rs.getDouble("importo"),
+                        rs.getString("stato"),
+                        rs.getString("promo")
+                    ));
+                }
+            }
+            return storico;
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore lettura storico pagamenti", exception);
+        }
+    }
+
+    public boolean saldaPagamento(String email, String mese, int anno) {
+        String sql = """
+            UPDATE pagamenti
+            SET stato = 'Pagamento confermato'
+            WHERE id_abbonato = ? AND mese = ? AND anno = ?
+            """;
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            statement.setString(2, mese);
+            statement.setInt(3, anno);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore aggiornamento stato pagamento", exception);
+        }
+    }
+
+    private String getPromozioniAttiveString(String email) {
+        List<String> promozioni = findPromozioniAttiveByEmail(email);
+        return String.join(", ", promozioni);
+    }
+
+    public void inizializzaStoricoNuovoUtente(String email) {
+        String countSql = "SELECT COUNT(*) FROM pagamenti WHERE id_abbonato = ?";
+        String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement countStatement = connection.prepareStatement(countSql);
+             PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
+            countStatement.setString(1, email);
+            try (ResultSet rs = countStatement.executeQuery()) {
+                int count = rs.next() ? rs.getInt(1) : 0;
+                if (count > 0) {
+                    return;
+                }
+            }
+
+            String promoSnapshot = getPromozioniAttiveString(email);
+            insertPagamento(insertStatement, email, "Gennaio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+            insertPagamento(insertStatement, email, "Febbraio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+            insertPagamento(insertStatement, email, "Marzo", 2026, 24.99, "Pagamento confermato", promoSnapshot);
+            insertPagamento(insertStatement, email, "Aprile", 2026, 24.99, "Da pagare", promoSnapshot);
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore inizializzazione storico pagamenti", exception);
+        }
+    }
+
+    private void insertPagamento(
+        PreparedStatement statement,
+        String idAbbonato,
+        String mese,
+        int anno,
+        double importo,
+        String stato,
+        String promo
+    ) throws SQLException {
+        statement.setString(1, idAbbonato);
+        statement.setString(2, mese);
+        statement.setInt(3, anno);
+        statement.setDouble(4, importo);
+        statement.setString(5, stato);
+        statement.setString(6, promo);
+        statement.executeUpdate();
+    }
+
+    private String[] getUltimoPagamentoConfermato(String email) throws SQLException {
+        String sql = """
+            SELECT mese, anno
+            FROM pagamenti
+            WHERE id_abbonato = ?
+            ORDER BY anno DESC,
+                CASE mese
+                    WHEN 'Gennaio' THEN 1
+                    WHEN 'Febbraio' THEN 2
+                    WHEN 'Marzo' THEN 3
+                    WHEN 'Aprile' THEN 4
+                    WHEN 'Maggio' THEN 5
+                    WHEN 'Giugno' THEN 6
+                    WHEN 'Luglio' THEN 7
+                    WHEN 'Agosto' THEN 8
+                    WHEN 'Settembre' THEN 9
+                    WHEN 'Ottobre' THEN 10
+                    WHEN 'Novembre' THEN 11
+                    WHEN 'Dicembre' THEN 12
+                    ELSE 99
+                END DESC
+            LIMIT 1
+            """;
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return new String[] { rs.getString("mese"), String.valueOf(rs.getInt("anno")) };
+                }
+                return null;
+            }
+        }
+    }
+
+    private boolean isPagamentoConfermato(String stato) {
+        return stato != null && "Pagamento confermato".equalsIgnoreCase(stato.trim());
+    }
+
+    private String getMeseSuccessivo(String mese) {
+        return switch (mese) {
+            case "Gennaio" -> "Febbraio";
+            case "Febbraio" -> "Marzo";
+            case "Marzo" -> "Aprile";
+            case "Aprile" -> "Maggio";
+            case "Maggio" -> "Giugno";
+            case "Giugno" -> "Luglio";
+            case "Luglio" -> "Agosto";
+            case "Agosto" -> "Settembre";
+            case "Settembre" -> "Ottobre";
+            case "Ottobre" -> "Novembre";
+            case "Novembre" -> "Dicembre";
+            case "Dicembre" -> "Gennaio";
+            default -> throw new IllegalArgumentException("Mese non valido: " + mese);
+        };
+    }
+
+    private String getMeseItaliano(int month) {
+        return switch (month) {
+            case 1 -> "Gennaio";
+            case 2 -> "Febbraio";
+            case 3 -> "Marzo";
+            case 4 -> "Aprile";
+            case 5 -> "Maggio";
+            case 6 -> "Giugno";
+            case 7 -> "Luglio";
+            case 8 -> "Agosto";
+            case 9 -> "Settembre";
+            case 10 -> "Ottobre";
+            case 11 -> "Novembre";
+            case 12 -> "Dicembre";
+            default -> throw new IllegalArgumentException("Mese non valido: " + month);
+        };
     }
 
     public List<String> findPromozioniAttiveByEmail(String email) {

@@ -37,9 +37,22 @@ Il progetto deve essere sviluppato secondo le seguenti linee:
 E' possibile costruire l'applicazione standalone con supporto grafico tramite l'utilizzo di strumenti per la realizzazione di interfacce grafiche presenti in molti IDE (GUI Designer in IntelliJ e
 WindowsBuilder in Eclipse) oppure utilizzare tools compatibili con JavaFx come Scene Builder (compatibile con gli IDE).
 
+## Funzionalita implementate
+
+Modalita amministratore:
+* visualizzazione elenco abbonati e filtro per numero
+* inserimento promozioni
+* visualizzazione utilizzo servizi (chiamate, sms, dati, promozioni)
+
+Modalita abbonato:
+* chiamate, sms, traffico dati
+* adesione promozioni
+* pagamento con contanti, carta, bancomat
+* storico pagamenti mensili con stato
+
 ## Design pattern usati
 
-Il progetto include più di sei pattern riconoscibili nel codice:
+Pattern GoF della lista richiesta:
 
 * Singleton: [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java)
 * Factory Method: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
@@ -47,9 +60,11 @@ Il progetto include più di sei pattern riconoscibili nel codice:
 * Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java)
 * Command: [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
 * Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java)
+
+Pattern architetturali/supporto presenti nel progetto:
 * Repository: [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
 * MVC: file FXML in [src/main/resources/view](src/main/resources/view) collegati ai controller in [src/main/java/controller](src/main/java/controller)
-* Observer / binding JavaFX: uso di `ObservableList` e `TableView` in [controller.ClienteController](src/main/java/controller/ClienteController.java) e [controller.AdminController](src/main/java/controller/AdminController.java)
+* Observer / binding JavaFX: uso di `ObservableList` e `TableView` in [src/main/java/controller/ClienteController.java](src/main/java/controller/ClienteController.java) e [src/main/java/controller/AdminController.java](src/main/java/controller/AdminController.java)
 
 ## Persistenza dati (JDBC)
 
@@ -57,10 +72,23 @@ L'applicazione usa JDBC con database relazionale locale SQLite.
 
 - Driver: `org.xerial:sqlite-jdbc`
 - File database: `parth.db` (creato automaticamente alla prima esecuzione)
-- Inizializzazione schema e seed dati: `service.DatabaseManager`
-- Accesso ai dati applicativi: `service.TelecomRepository`
+- Tabelle principali: `abbonato`, `piano_tariffario`, `promozione`, `abbonato_promozione`, `utilizzo`, `pagamenti`
+- Inizializzazione schema e seed dati: [src/main/java/service/DatabaseManager.java](src/main/java/service/DatabaseManager.java)
+- Accesso ai dati applicativi: [src/main/java/service/TelecomRepository.java](src/main/java/service/TelecomRepository.java)
+- Modello storico pagamenti: [src/main/java/model/Pagamento.java](src/main/java/model/Pagamento.java)
+
+## Interfacce principali
+
+- Login: [src/main/resources/view/login.fxml](src/main/resources/view/login.fxml)
+- Admin: [src/main/resources/view/admin.fxml](src/main/resources/view/admin.fxml)
+- Cliente (include tab storico pagamenti): [src/main/resources/view/cliente.fxml](src/main/resources/view/cliente.fxml)
+- Registrazione: [src/main/resources/view/register.fxml](src/main/resources/view/register.fxml)
 
 
 ## Avvio
 
-per runnarlo, nel terminale scrivere: mvn -q -DskipTests compile && mvn -q -DskipTests javafx:run
+Da terminale, nella root del progetto:
+
+```bash
+mvn -q -DskipTests compile && mvn -q -DskipTests javafx:run
+```
