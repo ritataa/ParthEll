@@ -13,7 +13,7 @@ public class AuthenticationService {
     /** Istanza singleton del servizio di autenticazione */
     private static AuthenticationService instance;
     
-    private final TelecomRepository repository = new TelecomRepository();
+    private final TelecomRepository repository = new TelecomRepositoryProxy();
     
     /**
      * Costruttore privato per implementare il pattern Singleton.

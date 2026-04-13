@@ -2,7 +2,7 @@ package controller.command;
 
 import controller.ClienteController;
 
-public class BancomatPaymentCommand implements PaymentCommand {
+public class BancomatPaymentCommand extends AbstractPaymentCommand {
 
     private final ClienteController receiver;
     private final double totale;
@@ -13,7 +13,7 @@ public class BancomatPaymentCommand implements PaymentCommand {
     }
 
     @Override
-    public void execute() {
+    protected void doExecute() {
         receiver.apriSchermataPagamentoBancomat(totale);
     }
 }

@@ -18,9 +18,10 @@ import javafx.stage.Stage;
 import model.Abbonato;
 import service.AuthFacade;
 import service.TelecomRepository;
+import service.TelecomRepositoryProxy;
 
 public class AdminController {
-    private final TelecomRepository repository = new TelecomRepository();
+    private final TelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
 
     @FXML private TableView<model.Utilizzo> tabStatistiche;
@@ -32,6 +33,7 @@ public class AdminController {
     @FXML private TableColumn<model.Utilizzo, Integer> smsClienteStat;
     @FXML private TableColumn<model.Utilizzo, Integer> datiClienteStat;
     @FXML private TableColumn<model.Utilizzo, String> promoClienteStat;
+    @FXML private TextField searchFieldStatistiche;
 
     @FXML private TableView<model.Promozione> tabPromo;
     @FXML private TableColumn<model.Promozione, String> colNomePromo;
@@ -51,6 +53,7 @@ public class AdminController {
 
     private javafx.collections.ObservableList<Abbonato> abbonatiCompleti = javafx.collections.FXCollections.observableArrayList();
     private javafx.collections.ObservableList<model.Promozione> promozioniComplete = javafx.collections.FXCollections.observableArrayList();
+    private javafx.collections.ObservableList<model.Utilizzo> utilizziCompleti = javafx.collections.FXCollections.observableArrayList();
 
         // ...altri campi...
 
@@ -81,6 +84,9 @@ public class AdminController {
     if (datiClienteStat != null) datiClienteStat.setCellValueFactory(new PropertyValueFactory<>("dati"));
     if (promoClienteStat != null) promoClienteStat.setCellValueFactory(new PropertyValueFactory<>("promo"));
         caricaUtilizzo();
+        if (searchFieldStatistiche != null) {
+            searchFieldStatistiche.textProperty().addListener((obs, oldValue, newValue) -> filtraStatistichePerNumero(newValue));
+        }
 
         // Colonne tabPromo
     if (colNomePromo != null) colNomePromo.setCellValueFactory(new PropertyValueFactory<>("nome"));
@@ -92,8 +98,8 @@ public class AdminController {
         }
         }
     private void caricaUtilizzo() {
-        javafx.collections.ObservableList<model.Utilizzo> lista = javafx.collections.FXCollections.observableArrayList(repository.findAllUtilizzi());
-        if (tabStatistiche != null) tabStatistiche.setItems(lista);
+        utilizziCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllUtilizzi());
+        if (tabStatistiche != null) tabStatistiche.setItems(utilizziCompleti);
     }
 
     private void caricaPromozioni() {
@@ -138,6 +144,26 @@ public class AdminController {
             }
         }
         tabPromo.setItems(filtrate);
+    }
+
+    private void filtraStatistichePerNumero(String filtroNumero) {
+        if (tabStatistiche == null) {
+            return;
+        }
+        if (filtroNumero == null || filtroNumero.isBlank()) {
+            tabStatistiche.setItems(utilizziCompleti);
+            return;
+        }
+
+        String filtro = filtroNumero.trim();
+        javafx.collections.ObservableList<model.Utilizzo> filtrate = javafx.collections.FXCollections.observableArrayList();
+        for (model.Utilizzo utilizzo : utilizziCompleti) {
+            String numero = utilizzo.getNumero();
+            if (numero != null && numero.contains(filtro)) {
+                filtrate.add(utilizzo);
+            }
+        }
+        tabStatistiche.setItems(filtrate);
     }
 
     @FXML

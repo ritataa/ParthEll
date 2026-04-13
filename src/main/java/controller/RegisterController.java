@@ -13,10 +13,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import service.TelecomRepository;
+import service.TelecomRepositoryProxy;
 
 public class RegisterController {
 
-    private final TelecomRepository repository = new TelecomRepository();
+    private final TelecomRepository repository = new TelecomRepositoryProxy();
 
     @FXML private TextField emailField;
     @FXML private TextField passwordField;

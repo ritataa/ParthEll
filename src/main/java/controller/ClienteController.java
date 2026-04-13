@@ -34,11 +34,12 @@ import model.Promozione;
 import model.Utilizzo;
 import service.AuthFacade;
 import service.TelecomRepository;
+import service.TelecomRepositoryProxy;
 import service.UserSession;
 
 public class ClienteController {
 
-    private final TelecomRepository repository = new TelecomRepository();
+    private final TelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
 
     @FXML private Label welcomeLabel;
@@ -687,10 +688,12 @@ public class ClienteController {
             return false;
         }
 
-        if (!"Da pagare".equalsIgnoreCase(selezionato.getStato())) {
+        if (!selezionato.isPagabile()) {
             showAlert(Alert.AlertType.INFORMATION, "Pagamento", "La riga selezionata risulta gia confermata.");
             return false;
         }
+
+        selezionato.confermaPagamentoState();
 
         boolean saldato = repository.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
         if (!saldato) {
