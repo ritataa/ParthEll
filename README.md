@@ -37,6 +37,20 @@ Il progetto deve essere sviluppato secondo le seguenti linee:
 E' possibile costruire l'applicazione standalone con supporto grafico tramite l'utilizzo di strumenti per la realizzazione di interfacce grafiche presenti in molti IDE (GUI Designer in IntelliJ e
 WindowsBuilder in Eclipse) oppure utilizzare tools compatibili con JavaFx come Scene Builder (compatibile con gli IDE).
 
+## Design pattern usati
+
+Il progetto include più di sei pattern riconoscibili nel codice:
+
+* Singleton: [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java)
+* Factory Method: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
+* Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
+* Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java)
+* Command: [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
+* Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java)
+* Repository: [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
+* MVC: file FXML in [src/main/resources/view](src/main/resources/view) collegati ai controller in [src/main/java/controller](src/main/java/controller)
+* Observer / binding JavaFX: uso di `ObservableList` e `TableView` in [controller.ClienteController](src/main/java/controller/ClienteController.java) e [controller.AdminController](src/main/java/controller/AdminController.java)
+
 ## Persistenza dati (JDBC)
 
 L'applicazione usa JDBC con database relazionale locale SQLite.
