@@ -32,8 +32,8 @@ import service.PromotionService;
 import service.TelecomRepository;
 import service.TelecomRepositoryProxy;
 import service.UIFormatsService;
-import service.UserSession;
 import service.UsageRegistrationService;
+import service.UserSession;
 
 public class ClienteController {
 
