@@ -59,7 +59,24 @@ Pattern GoF della lista richiesta:
 * Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
 * Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java)
 * Command: [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
+* Template Method: [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) con algoritmo `execute()` e passi demandati ai command concreti
+* State: [model.Pagamento](src/main/java/model/Pagamento.java) con stati in [src/main/java/model/state](src/main/java/model/state)
 * Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java)
+* Proxy: [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
+
+### Tabella per discussione orale
+
+| Pattern | Ruolo | Evidenza nel codice | Motivazione |
+| --- | --- | --- | --- |
+| Singleton | Garantisce una sola istanza condivisa per servizi centrali | [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java) | Evita duplicazioni di stato e semplifica l'accesso globale a autenticazione, sessione e DB |
+| Factory Method | Centralizza la creazione di oggetti Abbonato | [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java) | Riduce accoppiamento tra chiamanti e costruttori concreti |
+| Builder | Costruisce Abbonato in modo leggibile e sicuro | [model.Abbonato.Builder](src/main/java/model/Abbonato.java) | Utile con oggetti con molti campi, migliora chiarezza e manutenzione |
+| Strategy | Seleziona algoritmo di pagamento a runtime | [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java), [service/payment](src/main/java/service/payment) | Permette di aggiungere nuovi metodi di pagamento senza modificare il codice client |
+| Command | Incapsula richieste di pagamento in oggetti comando | [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java), [controller/command](src/main/java/controller/command) | Disaccoppia invocazione azione (UI) da esecuzione concreta |
+| Template Method | Definisce uno scheletro comune di esecuzione per i comandi | [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) | Uniforma il flusso dei comandi e delega i passi variabili alle sottoclassi |
+| State | Rappresenta il comportamento in base allo stato del pagamento | [model.Pagamento](src/main/java/model/Pagamento.java), [model/state](src/main/java/model/state) | Elimina controlli sparsi su stringhe stato e rende esplicite le transizioni |
+| Facade | Espone un punto unico per login/logout/sessione | [service.AuthFacade](src/main/java/service/AuthFacade.java) | Semplifica i controller e riduce la dipendenza da più servizi interni |
+| Proxy | Interpone un livello tra client e repository reale | [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) | Consente di introdurre controlli/logging senza cambiare i client |
 
 Pattern architetturali/supporto presenti nel progetto:
 * Repository: [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
