@@ -64,7 +64,7 @@ Pattern GoF della lista richiesta:
 * Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java)
 * Proxy: [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
 
-### Tabella per discussione orale
+### Tabella Design Pattern
 
 | Pattern | Ruolo | Evidenza nel codice | Motivazione |
 | --- | --- | --- | --- |
