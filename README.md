@@ -83,6 +83,21 @@ Pattern architetturali/supporto presenti nel progetto:
 * MVC: file FXML in [src/main/resources/view](src/main/resources/view) collegati ai controller in [src/main/java/controller](src/main/java/controller)
 * Observer / binding JavaFX: uso di `ObservableList` e `TableView` in [src/main/java/controller/ClienteController.java](src/main/java/controller/ClienteController.java) e [src/main/java/controller/AdminController.java](src/main/java/controller/AdminController.java)
 
+### Migliorie SOLID applicate (SRP)
+
+Per ridurre le responsabilita di [src/main/java/controller/ClienteController.java](src/main/java/controller/ClienteController.java) sono stati estratti componenti dedicati:
+
+* Gestione alert UI in [src/main/java/service/AlertManager.java](src/main/java/service/AlertManager.java)
+* Validazione input in [src/main/java/service/FormInputValidator.java](src/main/java/service/FormInputValidator.java)
+* Formattazione valori UI in [src/main/java/service/UIFormatsService.java](src/main/java/service/UIFormatsService.java)
+* Configurazione tabella storico pagamenti in [src/main/java/controller/payment/StoricoPagamentiTableConfigurator.java](src/main/java/controller/payment/StoricoPagamentiTableConfigurator.java)
+* Gestione dialog pagamenti in [src/main/java/controller/payment/PaymentDialogFactory.java](src/main/java/controller/payment/PaymentDialogFactory.java)
+* Gestione dettagli storico in [src/main/java/controller/StorageDetailsViewController.java](src/main/java/controller/StorageDetailsViewController.java)
+* Navigazione logout/login in [src/main/java/controller/LoginNavigator.java](src/main/java/controller/LoginNavigator.java)
+* Logica dati e business cliente in [src/main/java/service/ClienteDataService.java](src/main/java/service/ClienteDataService.java), [src/main/java/service/UsageRegistrationService.java](src/main/java/service/UsageRegistrationService.java), [src/main/java/service/PromotionService.java](src/main/java/service/PromotionService.java)
+
+Questo refactor mantiene invariato il comportamento funzionale ma migliora separazione delle responsabilita, manutenibilita e testabilita.
+
 ## Persistenza dati (JDBC)
 
 L'applicazione usa JDBC con database relazionale locale SQLite.
