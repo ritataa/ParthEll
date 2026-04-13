@@ -52,7 +52,7 @@ Modalita abbonato:
 
 ## Design pattern usati
 
-Pattern GoF della lista richiesta:
+Pattern GoF:
 
 * Singleton: [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java)
 * Factory Method: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
