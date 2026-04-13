@@ -2,6 +2,9 @@ package controller;
 
 import java.io.IOException;
 
+import controller.command.BancomatPaymentCommand;
+import controller.command.CardPaymentCommand;
+import controller.command.CashPaymentCommand;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -11,21 +14,28 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
+import service.AuthFacade;
 import service.TelecomRepository;
 import service.UserSession;
 
 public class ClienteController {
 
     private final TelecomRepository repository = new TelecomRepository();
+    private final AuthFacade authFacade = new AuthFacade();
 
     @FXML private Label welcomeLabel;
     @FXML private TextField numeroField;
@@ -186,20 +196,17 @@ public class ClienteController {
 
     @FXML
     public void handlePagamentoContanti(ActionEvent event) {
-        showAlert(Alert.AlertType.INFORMATION, "Pagamento", 
-                 "Pagamento in contanti registrato!");
+        new CashPaymentCommand(this, getTotaleMensileCorrente()).execute();
     }
 
     @FXML
     public void handlePagamentoCarta(ActionEvent event) {
-        showAlert(Alert.AlertType.INFORMATION, "Pagamento", 
-                 "Pagamento con carta di credito registrato!");
+        new CardPaymentCommand(this, getTotaleMensileCorrente()).execute();
     }
 
     @FXML
     public void handlePagamentoBancomat(ActionEvent event) {
-        showAlert(Alert.AlertType.INFORMATION, "Pagamento", 
-                 "Pagamento con bancomat registrato!");
+        new BancomatPaymentCommand(this, getTotaleMensileCorrente()).execute();
     }
 
     @FXML
@@ -208,7 +215,7 @@ public class ClienteController {
             // Torna alla schermata di login
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/login.fxml"));
             Parent root = loader.load();
-            UserSession.getInstance().clear();
+            authFacade.logout();
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             Scene scene = new Scene(root);
@@ -314,6 +321,151 @@ public class ClienteController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private double getTotaleMensileCorrente() {
+        String email = UserSession.getInstance().getCurrentEmail();
+        if (email == null || email.isBlank()) {
+            return 0.0;
+        }
+        return repository.calcolaTotaleMensileByEmail(email);
+    }
+
+    private Stage createDialog(String titolo) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle(titolo);
+        if (welcomeLabel != null && welcomeLabel.getScene() != null) {
+            dialog.initOwner(welcomeLabel.getScene().getWindow());
+        }
+        return dialog;
+    }
+
+    public void apriSchermataPagamentoContanti(double totale) {
+        Stage dialog = createDialog("Pagamento in Contanti");
+
+        Label totaleLabel = new Label("Totale: " + String.format("%.2f", totale) + " EUR");
+        TextField contantiField = new TextField();
+        contantiField.setPromptText("Importo ricevuto");
+        Label restoLabel = new Label("Resto: 0.00 EUR");
+
+        Button calcolaRestoButton = new Button("Calcola Resto");
+        calcolaRestoButton.setOnAction(e -> {
+            try {
+                double ricevuto = Double.parseDouble(contantiField.getText().trim());
+                double resto = ricevuto - totale;
+                if (resto < 0) {
+                    restoLabel.setText("Importo insufficiente: mancano " + String.format("%.2f", Math.abs(resto)) + " EUR");
+                    return;
+                }
+                restoLabel.setText("Resto: " + String.format("%.2f", resto) + " EUR");
+            } catch (NumberFormatException ex) {
+                restoLabel.setText("Inserisci un importo valido.");
+            }
+        });
+
+        Button confermaButton = new Button("Conferma Pagamento");
+        confermaButton.setOnAction(e -> {
+            try {
+                double ricevuto = Double.parseDouble(contantiField.getText().trim());
+                if (ricevuto < totale) {
+                    showAlert(Alert.AlertType.WARNING, "Pagamento", "Importo contanti insufficiente.");
+                    return;
+                }
+                showAlert(Alert.AlertType.INFORMATION, "Pagamento", "Pagamento in contanti confermato.");
+                dialog.close();
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "Inserisci un importo valido.");
+            }
+        });
+
+        Button annullaButton = new Button("Annulla");
+        annullaButton.setOnAction(e -> dialog.close());
+
+        HBox pulsanti = new HBox(10, calcolaRestoButton, confermaButton, annullaButton);
+        VBox root = new VBox(12, totaleLabel, contantiField, restoLabel, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 460, 200));
+        dialog.showAndWait();
+    }
+
+    public void apriSchermataPagamentoCarta(double totale) {
+        Stage dialog = createDialog("Pagamento con Carta");
+
+        Label totaleLabel = new Label("Totale: " + String.format("%.2f", totale) + " EUR");
+        TextField intestatarioField = new TextField();
+        intestatarioField.setPromptText("Nome Intestatario");
+        TextField numeroCartaField = new TextField();
+        numeroCartaField.setPromptText("Numero Carta (16 cifre)");
+        TextField scadenzaField = new TextField();
+        scadenzaField.setPromptText("Scadenza (MM/AA)");
+        TextField cvvField = new TextField();
+        cvvField.setPromptText("CVV (3 cifre)");
+
+        Button pagaOraButton = new Button("Paga Ora");
+        pagaOraButton.setOnAction(e -> {
+            String intestatario = intestatarioField.getText() == null ? "" : intestatarioField.getText().trim();
+            String numeroCarta = numeroCartaField.getText() == null ? "" : numeroCartaField.getText().trim();
+            String scadenza = scadenzaField.getText() == null ? "" : scadenzaField.getText().trim();
+            String cvv = cvvField.getText() == null ? "" : cvvField.getText().trim();
+
+            if (intestatario.isBlank() || !numeroCarta.matches("\\d{16}") || !scadenza.matches("(0[1-9]|1[0-2])/\\d{2}") || !cvv.matches("\\d{3}")) {
+                showAlert(Alert.AlertType.WARNING, "Pagamento", "Controlla i dati carta: numero 16 cifre, scadenza MM/AA, CVV 3 cifre.");
+                return;
+            }
+
+            showAlert(Alert.AlertType.INFORMATION, "Pagamento", "Transazione con carta completata. Totale addebitato: " + String.format("%.2f", totale) + " EUR");
+            dialog.close();
+        });
+
+        Button indietroButton = new Button("Indietro");
+        indietroButton.setOnAction(e -> dialog.close());
+
+        HBox pulsanti = new HBox(10, pagaOraButton, indietroButton);
+        VBox root = new VBox(10, totaleLabel, intestatarioField, numeroCartaField, scadenzaField, cvvField, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 440, 300));
+        dialog.showAndWait();
+    }
+
+    public void apriSchermataPagamentoBancomat(double totale) {
+        Stage dialog = createDialog("Pagamento Bancomat (POS)");
+
+        Label totaleLabel = new Label("Importo da pagare: " + String.format("%.2f", totale) + " EUR");
+        Button simulaLetturaButton = new Button("Simula Lettura Carta");
+        Label pinLabel = new Label("Inserisci PIN");
+        PasswordField pinField = new PasswordField();
+        pinField.setDisable(true);
+
+        simulaLetturaButton.setOnAction(e -> pinField.setDisable(false));
+
+        Button autorizzaButton = new Button("Autorizza Transazione");
+        autorizzaButton.setOnAction(e -> {
+            if (pinField.isDisabled()) {
+                showAlert(Alert.AlertType.WARNING, "POS", "Prima simula la lettura della carta.");
+                return;
+            }
+            String pin = pinField.getText() == null ? "" : pinField.getText().trim();
+            if (!pin.matches("\\d{4,6}")) {
+                showAlert(Alert.AlertType.WARNING, "POS", "PIN non valido.");
+                return;
+            }
+            showAlert(Alert.AlertType.INFORMATION, "POS", "Transazione autorizzata. Totale addebitato: " + String.format("%.2f", totale) + " EUR");
+            dialog.close();
+        });
+
+        Button annullaButton = new Button("Annulla");
+        annullaButton.setOnAction(e -> dialog.close());
+
+        HBox pinBox = new HBox(8, pinLabel, pinField);
+        HBox pulsanti = new HBox(10, autorizzaButton, annullaButton);
+        VBox root = new VBox(12, totaleLabel, simulaLetturaButton, pinBox, pulsanti);
+        root.setStyle("-fx-padding: 16;");
+
+        dialog.setScene(new Scene(root, 430, 220));
+        dialog.showAndWait();
     }
 
 }

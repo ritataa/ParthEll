@@ -36,7 +36,7 @@ public class TelecomRepository {
     public List<Abbonato> findAllAbbonati() {
         List<Abbonato> result = new ArrayList<>();
         String sql = """
-            SELECT nome, cognome, email, residenza, numero_telefono, piano_tariffario, conto
+            SELECT nome, cognome, email, residenza, numero_telefono, piano_tariffario
             FROM abbonato
             ORDER BY cognome, nome
             """;
@@ -45,15 +45,14 @@ public class TelecomRepository {
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet rs = statement.executeQuery()) {
             while (rs.next()) {
-                result.add(new Abbonato(
-                    rs.getString("nome"),
-                    rs.getString("cognome"),
-                    rs.getString("email"),
-                    rs.getString("residenza"),
-                    rs.getString("numero_telefono"),
-                    rs.getString("piano_tariffario"),
-                    rs.getString("conto")
-                ));
+                result.add(Abbonato.builder()
+                    .nome(rs.getString("nome"))
+                    .cognome(rs.getString("cognome"))
+                    .email(rs.getString("email"))
+                    .residenza(rs.getString("residenza"))
+                    .numeroTelefono(rs.getString("numero_telefono"))
+                    .pianoTariffario(rs.getString("piano_tariffario"))
+                    .build());
             }
             return result;
         } catch (SQLException exception) {
@@ -66,14 +65,16 @@ public class TelecomRepository {
         String sql = """
             SELECT
                 u.numero,
+                u.nome,
+                u.cognome,
+                u.email,
                 u.chiamate,
                 u.sms,
                 u.dati,
                 COALESCE(GROUP_CONCAT(ap.promozione_nome, ', '), '') AS promo
             FROM utilizzo u
-            LEFT JOIN abbonato a ON a.numero_telefono = u.numero
-            LEFT JOIN abbonato_promozione ap ON ap.email = a.email
-            GROUP BY u.numero, u.chiamate, u.sms, u.dati
+            LEFT JOIN abbonato_promozione ap ON ap.email = u.email
+            GROUP BY u.numero, u.nome, u.cognome, u.email, u.chiamate, u.sms, u.dati
             ORDER BY u.numero
             """;
 
@@ -83,6 +84,9 @@ public class TelecomRepository {
             while (rs.next()) {
                 result.add(new Utilizzo(
                     rs.getString("numero"),
+                    rs.getString("nome"),
+                    rs.getString("cognome"),
+                    rs.getString("email"),
                     rs.getInt("chiamate"),
                     rs.getInt("sms"),
                     rs.getInt("dati"),
@@ -133,8 +137,8 @@ public class TelecomRepository {
 
     public void addCliente(String email, String password, String nome, String cognome) {
         String sql = """
-            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (Connection connection = databaseManager.getConnection();
@@ -147,8 +151,7 @@ public class TelecomRepository {
             statement.setString(5, "N/D");
             statement.setString(6, numeroTelefono);
             statement.setString(7, "base");
-            statement.setString(8, "ricaricabile");
-            statement.setDouble(9, 0.0);
+            statement.setDouble(8, 0.0);
             statement.executeUpdate();
             createUtilizzoIfMissing(connection, numeroTelefono);
         } catch (SQLException exception) {
@@ -163,12 +166,11 @@ public class TelecomRepository {
         String cognome,
         String residenza,
         String numeroTelefono,
-        String pianoTariffario,
-        String conto
+        String pianoTariffario
     ) {
         String sql = """
-            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (Connection connection = databaseManager.getConnection();
@@ -185,8 +187,7 @@ public class TelecomRepository {
             statement.setString(5, residenza.trim());
             statement.setString(6, numeroTelefono.trim());
             statement.setString(7, pianoNormalizzato);
-            statement.setString(8, conto.trim());
-            statement.setDouble(9, 0.0);
+            statement.setDouble(8, 0.0);
             statement.executeUpdate();
             createUtilizzoIfMissing(connection, numeroTelefono.trim());
         } catch (SQLException exception) {
@@ -222,6 +223,9 @@ public class TelecomRepository {
         String sql = """
             SELECT
                 u.numero,
+                u.nome,
+                u.cognome,
+                u.email,
                 u.chiamate,
                 u.sms,
                 u.dati,
@@ -230,7 +234,7 @@ public class TelecomRepository {
             LEFT JOIN utilizzo u ON u.numero = a.numero_telefono
             LEFT JOIN abbonato_promozione ap ON ap.email = a.email
             WHERE a.email = ?
-            GROUP BY u.numero, u.chiamate, u.sms, u.dati
+            GROUP BY u.numero, u.nome, u.cognome, u.email, u.chiamate, u.sms, u.dati
             """;
 
         try (Connection connection = databaseManager.getConnection()) {
@@ -241,6 +245,9 @@ public class TelecomRepository {
                     if (rs.next()) {
                         return new Utilizzo(
                             rs.getString("numero"),
+                            rs.getString("nome"),
+                            rs.getString("cognome"),
+                            rs.getString("email"),
                             rs.getInt("chiamate"),
                             rs.getInt("sms"),
                             rs.getInt("dati"),
@@ -249,9 +256,48 @@ public class TelecomRepository {
                     }
                 }
             }
-            return new Utilizzo("", 0, 0, 0, "");
+            return new Utilizzo("", "", "", "", 0, 0, 0, "");
         } catch (SQLException exception) {
             throw new RuntimeException("Errore lettura utilizzo cliente", exception);
+        }
+    }
+
+    public void addPromozione(String nome, double costo, String descrizione) {
+        String sql = "INSERT INTO promozione(nome, costo, descrizione) VALUES (?, ?, ?)";
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, nome);
+            statement.setDouble(2, costo);
+            statement.setString(3, descrizione);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore inserimento promozione", exception);
+        }
+    }
+
+    public double calcolaTotaleMensileByEmail(String email) {
+        String sql = """
+            SELECT
+                COALESCE(p.costo_mensile, 0) + COALESCE(SUM(pr.costo), 0) AS totale
+            FROM abbonato a
+            LEFT JOIN piano_tariffario p ON p.nome = a.piano_tariffario
+            LEFT JOIN abbonato_promozione ap ON ap.email = a.email
+            LEFT JOIN promozione pr ON pr.nome = ap.promozione_nome
+            WHERE a.email = ?
+            GROUP BY p.costo_mensile
+            """;
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("totale");
+                }
+                return 0.0;
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore calcolo totale mensile", exception);
         }
     }
 
@@ -387,8 +433,8 @@ public class TelecomRepository {
 
     private void ensureUtilizzoByEmail(Connection connection, String email) throws SQLException {
         String sql = """
-            INSERT OR IGNORE INTO utilizzo(numero, chiamate, sms, dati)
-            SELECT numero_telefono, 0, 0, 0
+            INSERT OR IGNORE INTO utilizzo(numero, nome, cognome, email, chiamate, sms, dati)
+            SELECT numero_telefono, nome, cognome, email, 0, 0, 0
             FROM abbonato
             WHERE email = ?
             """;
@@ -396,10 +442,30 @@ public class TelecomRepository {
             statement.setString(1, email);
             statement.executeUpdate();
         }
+
+        String syncSql = """
+            UPDATE utilizzo
+            SET nome = (SELECT a.nome FROM abbonato a WHERE a.email = ?),
+                cognome = (SELECT a.cognome FROM abbonato a WHERE a.email = ?),
+                email = ?
+            WHERE numero = (SELECT a.numero_telefono FROM abbonato a WHERE a.email = ?)
+            """;
+        try (PreparedStatement statement = connection.prepareStatement(syncSql)) {
+            statement.setString(1, email);
+            statement.setString(2, email);
+            statement.setString(3, email);
+            statement.setString(4, email);
+            statement.executeUpdate();
+        }
     }
 
     private void createUtilizzoIfMissing(Connection connection, String numeroTelefono) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO utilizzo(numero, chiamate, sms, dati) VALUES (?, 0, 0, 0)";
+        String sql = """
+            INSERT OR IGNORE INTO utilizzo(numero, nome, cognome, email, chiamate, sms, dati)
+            SELECT numero_telefono, nome, cognome, email, 0, 0, 0
+            FROM abbonato
+            WHERE numero_telefono = ?
+            """;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, numeroTelefono);
             statement.executeUpdate();

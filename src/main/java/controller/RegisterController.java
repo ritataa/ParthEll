@@ -25,7 +25,6 @@ public class RegisterController {
     @FXML private TextField residenzaField;
     @FXML private TextField numeroField;
     @FXML private ComboBox<String> pianoField;
-    @FXML private TextField contoField;
 
     public void initialize() {
         pianoField.getItems().setAll(repository.findAllPianiTariffari());
@@ -43,16 +42,15 @@ public class RegisterController {
         String residenza = residenzaField.getText();
         String numero = numeroField.getText();
         String piano = pianoField.getValue();
-        String conto = contoField.getText();
 
         if (isBlank(email) || isBlank(password) || isBlank(nome) || isBlank(cognome)
-            || isBlank(residenza) || isBlank(numero) || isBlank(piano) || isBlank(conto)) {
+            || isBlank(residenza) || isBlank(numero) || isBlank(piano)) {
             showAlert(Alert.AlertType.WARNING, "Attenzione", "Compila tutti i campi!");
             return;
         }
 
         try {
-            repository.registerCliente(email, password, nome, cognome, residenza, numero, piano, conto);
+            repository.registerCliente(email, password, nome, cognome, residenza, numero, piano);
             showAlert(Alert.AlertType.INFORMATION, "Registrazione", "Account creato con successo!");
             tornaAlLogin(event);
         } catch (RuntimeException exception) {

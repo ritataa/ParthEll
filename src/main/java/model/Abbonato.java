@@ -7,21 +7,19 @@ public class Abbonato {
     private String residenza;
     private String numeroTelefono;
     private String pianoTariffario;
-    private String conto;
 
     // Costruttore vuoto
     public Abbonato() {}
 
     // Costruttore completo
     public Abbonato(String nome, String cognome, String email, String residenza, 
-                   String numeroTelefono, String pianoTariffario, String conto) {
+                   String numeroTelefono, String pianoTariffario) {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;
         this.residenza = residenza;
         this.numeroTelefono = numeroTelefono;
         this.pianoTariffario = pianoTariffario;
-        this.conto = conto;
     }
 
     // Getter e Setter
@@ -43,9 +41,6 @@ public class Abbonato {
     public String getPianoTariffario() { return pianoTariffario; }
     public void setPianoTariffario(String pianoTariffario) { this.pianoTariffario = pianoTariffario; }
 
-    public String getConto() { return conto; }
-    public void setConto(String conto) { this.conto = conto; }
-
     @Override
     public String toString() {
         return "Abbonato{" +
@@ -54,5 +49,55 @@ public class Abbonato {
                 ", email='" + email + '\'' +
                 ", pianoTariffario='" + pianoTariffario + '\'' +
                 '}';
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String nome;
+        private String cognome;
+        private String email;
+        private String residenza;
+        private String numeroTelefono;
+        private String pianoTariffario;
+
+        private Builder() {
+        }
+
+        public Builder nome(String nome) {
+            this.nome = nome;
+            return this;
+        }
+
+        public Builder cognome(String cognome) {
+            this.cognome = cognome;
+            return this;
+        }
+
+        public Builder email(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder residenza(String residenza) {
+            this.residenza = residenza;
+            return this;
+        }
+
+        public Builder numeroTelefono(String numeroTelefono) {
+            this.numeroTelefono = numeroTelefono;
+            return this;
+        }
+
+        public Builder pianoTariffario(String pianoTariffario) {
+            this.pianoTariffario = pianoTariffario;
+            return this;
+        }
+
+        public Abbonato build() {
+            return new Abbonato(nome, cognome, email, residenza, numeroTelefono, pianoTariffario);
+        }
     }
 }

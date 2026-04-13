@@ -75,14 +75,16 @@
                         <TextField fx:id="searchFieldStatistiche" />
                         <TableView fx:id="tabStatistiche" prefHeight="384.0" prefWidth="564.0" style="-fx-background-color: #1C1C1E; -fx-text-background-color: white; -fx-table-cell-border-color: #2C2C2E; -fx-selection-bar: #007AFF; -fx-selection-bar-text: white;">
                           <columns>
-                            <TableColumn fx:id="numClienteStat" prefWidth="143.27171325683594" style="-fx-text-background-color: black;" text="Numero" />
-                              <TableColumn fx:id="chiamateClienteStat" prefWidth="81.7282943725586" style="-fx-text-background-color: black;" text="Chiamate (%)" />
-                              <TableColumn fx:id="smsClienteStat" prefWidth="81.62431335449219" style="-fx-text-background-color: black;" text="SMS (%)" />
-                              <TableColumn fx:id="datiClienteStat" prefWidth="74.041015625" style="-fx-text-background-color: black;" text="Dati (%)" />
-                              <TableColumn fx:id="promoClienteStat" prefWidth="178.83065795898438" style="-fx-text-background-color: black;" text="Promo" />
+                                          <TableColumn fx:id="numClienteStat" prefWidth="100.0" style="-fx-text-background-color: black;" text="Numero" />
+                                             <TableColumn fx:id="nomeClienteStat" prefWidth="80.0" style="-fx-text-background-color: black;" text="Nome" />
+                                             <TableColumn fx:id="cognomeClienteStat" prefWidth="90.0" style="-fx-text-background-color: black;" text="Cognome" />
+                                             <TableColumn fx:id="emailClienteStat" prefWidth="130.0" style="-fx-text-background-color: black;" text="Email" />
+                                             <TableColumn fx:id="chiamateClienteStat" prefWidth="60.0" style="-fx-text-background-color: black;" text="Chiamate (%)" />
+                                             <TableColumn fx:id="smsClienteStat" prefWidth="50.0" style="-fx-text-background-color: black;" text="SMS (%)" />
+                                             <TableColumn fx:id="datiClienteStat" prefWidth="50.0" style="-fx-text-background-color: black;" text="Dati (%)" />
+                                             <TableColumn fx:id="promoClienteStat" prefWidth="140.0" style="-fx-text-background-color: black;" text="Promo" />
                           </columns>
                         </TableView>
-                        <Button fx:id="generaReportButton" onAction="#handleGeneraReport" style="-fx-background-color: #007AFF;" text="Genera Report" textFill="WHITE" />
                      </children>
                   </VBox>
                </content>
@@ -108,7 +110,7 @@
                               <TextField fx:id="nomePromozione" prefHeight="26.0" prefWidth="123.0" promptText="Nome promozione" />
                               <TextField fx:id="costoPromozione" prefHeight="26.0" prefWidth="126.0" promptText="Costo" />
                               <TextArea fx:id="descrizionePromozione" prefHeight="62.0" prefWidth="282.0" promptText="Descrizione" />
-                              <Button fx:id="aggiungiPromozione" mnemonicParsing="false" text="+" />
+                              <Button fx:id="aggiungiPromozione" mnemonicParsing="false" onAction="#handleAggiungiPromozione" text="+" />
                            </children>
                         </HBox>
                         <TableView fx:id="tabPromo" prefHeight="391.0" prefWidth="520.0" style="-fx-background-color: #1C1C1E; -fx-table-cell-border-color: #2C2C2E; -fx-text-background-color: white; -fx-selection-bar: #007AFF; -fx-selection-bar-text: white;">

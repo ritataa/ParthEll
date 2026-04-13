@@ -22,7 +22,14 @@ public class AbbonatoFactory {
      */
     public static Abbonato createAbbonatoBasic(String nome, String cognome, String email, 
                                              String residenza, String numeroTelefono) {
-        return new Abbonato(nome, cognome, email, residenza, numeroTelefono, "Basic", "ricaricabile");
+        return Abbonato.builder()
+            .nome(nome)
+            .cognome(cognome)
+            .email(email)
+            .residenza(residenza)
+            .numeroTelefono(numeroTelefono)
+            .pianoTariffario("Basic")
+            .build();
     }
     
     /**
@@ -37,7 +44,14 @@ public class AbbonatoFactory {
      */
     public static Abbonato createAbbonatorPremium(String nome, String cognome, String email, 
                                                 String residenza, String numeroTelefono) {
-        return new Abbonato(nome, cognome, email, residenza, numeroTelefono, "Premium", "fisso");
+        return Abbonato.builder()
+            .nome(nome)
+            .cognome(cognome)
+            .email(email)
+            .residenza(residenza)
+            .numeroTelefono(numeroTelefono)
+            .pianoTariffario("Premium")
+            .build();
     }
     
     /**
@@ -54,15 +68,18 @@ public class AbbonatoFactory {
      */
     public static Abbonato createAbbonato(String tipo, String nome, String cognome, String email, 
                                         String residenza, String numeroTelefono) {
-        switch (tipo.toLowerCase()) {
-            case "basic":
-                return createAbbonatoBasic(nome, cognome, email, residenza, numeroTelefono);
-            case "premium":
-                return createAbbonatorPremium(nome, cognome, email, residenza, numeroTelefono);
-            case "super":
-                return new Abbonato(nome, cognome, email, residenza, numeroTelefono, "Super Plus", "ricaricabile");
-            default:
-                throw new IllegalArgumentException("Tipo di abbonato non riconosciuto: " + tipo);
-        }
+        return switch (tipo.toLowerCase()) {
+            case "basic" -> createAbbonatoBasic(nome, cognome, email, residenza, numeroTelefono);
+            case "premium" -> createAbbonatorPremium(nome, cognome, email, residenza, numeroTelefono);
+            case "super" -> Abbonato.builder()
+                .nome(nome)
+                .cognome(cognome)
+                .email(email)
+                .residenza(residenza)
+                .numeroTelefono(numeroTelefono)
+                .pianoTariffario("Super Plus")
+                .build();
+            default -> throw new IllegalArgumentException("Tipo di abbonato non riconosciuto: " + tipo);
+        };
     }
 }

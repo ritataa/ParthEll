@@ -88,6 +88,9 @@ public final class DatabaseManager {
             statement.execute("""
                 CREATE TABLE IF NOT EXISTS utilizzo (
                     numero TEXT PRIMARY KEY,
+                    nome TEXT,
+                    cognome TEXT,
+                    email TEXT,
                     chiamate INTEGER NOT NULL,
                     sms INTEGER NOT NULL,
                     dati INTEGER NOT NULL
@@ -95,6 +98,7 @@ public final class DatabaseManager {
                 """);
 
             migrateLegacyPromoData(connection);
+            migrateUtilizzoAnagrafica(connection);
             seedDataIfNeeded(connection);
             normalizePianiAbbonati(connection);
         } catch (SQLException exception) {
@@ -129,13 +133,13 @@ public final class DatabaseManager {
         if (isTableEmpty(connection, "abbonato")) {
             try (PreparedStatement statement = connection.prepareStatement(
                 """
-                INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """)) {
                 insertAbbonatoSeed(statement,
-                    "anna@gmail.com", "anna123", "Anna", "Rosa", "Salerno", "3339988776", "plus", "ricaricabile", 10.0);
+                    "anna@gmail.com", "anna123", "Anna", "Rosa", "Salerno", "3339988776", "plus", 10.0);
                 insertAbbonatoSeed(statement,
-                    "sara@gmail.com", "sara123", "Sara", "Rossi", "Milano", "3364384733", "plus", "ricaricabile", 18.0);
+                    "sara@gmail.com", "sara123", "Sara", "Rossi", "Milano", "3364384733", "plus", 18.0);
             }
         }
 
@@ -151,9 +155,9 @@ public final class DatabaseManager {
 
         if (isTableEmpty(connection, "utilizzo")) {
             try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO utilizzo(numero, chiamate, sms, dati) VALUES (?, ?, ?, ?)")) {
-                insertUtilizzoSeed(statement, "3339988776", 50, 30, 20);
-                insertUtilizzoSeed(statement, "3364384733", 20, 50, 30);
+                "INSERT INTO utilizzo(numero, nome, cognome, email, chiamate, sms, dati) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                insertUtilizzoSeed(statement, "3339988776", "Anna", "Rosa", "anna@gmail.com", 50, 30, 20);
+                insertUtilizzoSeed(statement, "3364384733", "Sara", "Rossi", "sara@gmail.com", 20, 50, 30);
             }
         }
 
@@ -182,7 +186,6 @@ public final class DatabaseManager {
         String residenza,
         String numeroTelefono,
         String piano,
-        String conto,
         double saldo
     ) throws SQLException {
         statement.setString(1, email);
@@ -192,8 +195,7 @@ public final class DatabaseManager {
         statement.setString(5, residenza);
         statement.setString(6, numeroTelefono);
         statement.setString(7, piano);
-        statement.setString(8, conto);
-        statement.setDouble(9, saldo);
+        statement.setDouble(8, saldo);
         statement.executeUpdate();
     }
 
@@ -230,11 +232,23 @@ public final class DatabaseManager {
         statement.executeUpdate();
     }
 
-    private void insertUtilizzoSeed(PreparedStatement statement, String numero, int chiamate, int sms, int dati) throws SQLException {
+    private void insertUtilizzoSeed(
+        PreparedStatement statement,
+        String numero,
+        String nome,
+        String cognome,
+        String email,
+        int chiamate,
+        int sms,
+        int dati
+    ) throws SQLException {
         statement.setString(1, numero);
-        statement.setInt(2, chiamate);
-        statement.setInt(3, sms);
-        statement.setInt(4, dati);
+        statement.setString(2, nome);
+        statement.setString(3, cognome);
+        statement.setString(4, email);
+        statement.setInt(5, chiamate);
+        statement.setInt(6, sms);
+        statement.setInt(7, dati);
         statement.executeUpdate();
     }
 
@@ -263,12 +277,50 @@ public final class DatabaseManager {
             statement.execute("""
                 CREATE TABLE IF NOT EXISTS utilizzo_new (
                     numero TEXT PRIMARY KEY,
+                    nome TEXT,
+                    cognome TEXT,
+                    email TEXT,
                     chiamate INTEGER NOT NULL,
                     sms INTEGER NOT NULL,
                     dati INTEGER NOT NULL
                 )
                 """);
-            statement.execute("INSERT OR REPLACE INTO utilizzo_new(numero, chiamate, sms, dati) SELECT numero, chiamate, sms, dati FROM utilizzo");
+            statement.execute("""
+                INSERT OR REPLACE INTO utilizzo_new(numero, nome, cognome, email, chiamate, sms, dati)
+                SELECT u.numero, a.nome, a.cognome, a.email, u.chiamate, u.sms, u.dati
+                FROM utilizzo u
+                LEFT JOIN abbonato a ON a.numero_telefono = u.numero
+                """);
+            statement.execute("DROP TABLE utilizzo");
+            statement.execute("ALTER TABLE utilizzo_new RENAME TO utilizzo");
+        }
+    }
+
+    private void migrateUtilizzoAnagrafica(Connection connection) throws SQLException {
+        if (hasColumn(connection, "utilizzo", "nome")
+            && hasColumn(connection, "utilizzo", "cognome")
+            && hasColumn(connection, "utilizzo", "email")) {
+            return;
+        }
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS utilizzo_new (
+                    numero TEXT PRIMARY KEY,
+                    nome TEXT,
+                    cognome TEXT,
+                    email TEXT,
+                    chiamate INTEGER NOT NULL,
+                    sms INTEGER NOT NULL,
+                    dati INTEGER NOT NULL
+                )
+                """);
+            statement.execute("""
+                INSERT OR REPLACE INTO utilizzo_new(numero, nome, cognome, email, chiamate, sms, dati)
+                SELECT u.numero, a.nome, a.cognome, a.email, u.chiamate, u.sms, u.dati
+                FROM utilizzo u
+                LEFT JOIN abbonato a ON a.numero_telefono = u.numero
+                """);
             statement.execute("DROP TABLE utilizzo");
             statement.execute("ALTER TABLE utilizzo_new RENAME TO utilizzo");
         }

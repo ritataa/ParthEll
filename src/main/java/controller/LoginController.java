@@ -13,8 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import service.AuthenticationService;
-import service.UserSession;
+import service.AuthFacade;
 
 /**
  * Controller per la gestione dell'interfaccia di login dell'applicazione ParthEll.
@@ -39,15 +38,15 @@ public class LoginController {
     /** Campo di input per la password dell'utente */
     @FXML private PasswordField passwordField;
     
-    /** Servizio di autenticazione singleton */
-    private final AuthenticationService authService = AuthenticationService.getInstance();
+    /** Facade per autenticazione e sessione */
+    private final AuthFacade authFacade = new AuthFacade();
 
     /**
      * Metodo di inizializzazione chiamato automaticamente da JavaFX.
      * Imposta lo stato iniziale dell'interfaccia.
      */
     public void initialize() {
-        UserSession.getInstance().clear();
+        authFacade.logout();
         // Pulisce eventuali messaggi di errore all'avvio
         if (errorLabel != null) {
             errorLabel.setText("");
@@ -73,14 +72,11 @@ public class LoginController {
         }
 
         try {
-            // Usa il servizio di autenticazione singleton
-            String userType = authService.authenticate(email.trim(), password);
+            String userType = authFacade.login(email.trim(), password);
             
             if (userType == null) {
                 throw new AuthenticationException("Email o password non validi.");
             }
-
-            UserSession.getInstance().setCurrentUser(email.trim(), userType);
             
             // Pulisce il messaggio di errore
             errorLabel.setText("");

@@ -23,7 +23,7 @@
                         
                         <HBox spacing="10.0">
                            <children>
-                              <TextField fx:id="numeroSmsField" promptText="Numero destinatario" />
+                              <TextField fx:id="numeroSmsField" promptText="Numero di telefono" />
                               <TextField fx:id="testoSmsField" promptText="Testo SMS" />
                               <Button fx:id="inviaSmsButton" onAction="#handleInviaSms" text="Invia SMS" />
                            </children>
@@ -31,7 +31,7 @@
                         
                         <HBox spacing="10.0">
                            <children>
-                              <TextField fx:id="datiField" promptText="MB da utilizzare" />
+                              <TextField fx:id="datiField" promptText="GB da utilizzare" />
                               <Button fx:id="usaDatiButton" onAction="#handleUsaDati" text="Usa Dati" />
                            </children>
                         </HBox>

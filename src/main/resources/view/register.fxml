@@ -19,7 +19,6 @@
             <TextField fx:id="residenzaField" promptText="Residenza" />
             <TextField fx:id="numeroField" promptText="Numero di telefono" />
             <ComboBox fx:id="pianoField" promptText="Piano tariffario" />
-            <TextField fx:id="contoField" promptText="Tipo conto (fisso/ricaricabile)" />
             <Button mnemonicParsing="false" onAction="#handleRegistrati" style="-fx-background-color: #007BFF;" text="Registrati" textFill="WHITE" />
             <Button mnemonicParsing="false" onAction="#handleTornaLogin" style="-fx-background-color: #4B5563;" text="Torna al login" textFill="WHITE" />
          </children>
