@@ -17,6 +17,9 @@ import service.AlertManager;
 import service.FormInputValidator;
 import service.UIFormatsService;
 
+/**
+ * Factory dei dialog di pagamento (contanti, carta, bancomat).
+ */
 public class PaymentDialogFactory {
 
     private final UIFormatsService uiFormatsService;
@@ -33,6 +36,9 @@ public class PaymentDialogFactory {
         this.alertManager = alertManager;
     }
 
+    /**
+     * Mostra il dialog di pagamento contanti.
+     */
     public void showCashDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         Stage dialog = createDialog(owner, "Pagamento in Contanti");
 
@@ -85,6 +91,9 @@ public class PaymentDialogFactory {
         dialog.showAndWait();
     }
 
+    /**
+     * Mostra il dialog di pagamento con carta e valida i dati inseriti.
+     */
     public void showCardDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         Stage dialog = createDialog(owner, "Pagamento con Carta");
 
@@ -129,6 +138,9 @@ public class PaymentDialogFactory {
         dialog.showAndWait();
     }
 
+    /**
+     * Mostra il dialog di pagamento bancomat/POS.
+     */
     public void showBancomatDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         Stage dialog = createDialog(owner, "Pagamento Bancomat (POS)");
 

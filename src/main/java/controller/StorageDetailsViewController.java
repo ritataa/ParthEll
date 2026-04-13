@@ -6,6 +6,9 @@ import javafx.scene.layout.VBox;
 import model.Pagamento;
 import service.UIFormatsService;
 
+/**
+ * Gestisce il passaggio tra vista tabellare e dettaglio dello storico pagamenti.
+ */
 public class StorageDetailsViewController {
 
     private final VBox storicoClassicoPane;
@@ -37,6 +40,11 @@ public class StorageDetailsViewController {
         this.uiFormatsService = uiFormatsService;
     }
 
+    /**
+     * Mostra il pannello dettaglio per il pagamento selezionato.
+     *
+     * @return true se il dettaglio e stato mostrato, false se la selezione e nulla
+     */
     public boolean showDetails(Pagamento selezionato) {
         if (selezionato == null) {
             return false;
@@ -70,6 +78,9 @@ public class StorageDetailsViewController {
         return true;
     }
 
+    /**
+     * Ripristina la vista principale dello storico.
+     */
     public void hideDetails() {
         if (storicoDettaglioPane != null) {
             storicoDettaglioPane.setVisible(false);

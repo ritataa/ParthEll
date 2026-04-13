@@ -2,6 +2,9 @@ package controller.command;
 
 import controller.ClienteController;
 
+/**
+ * Comando concreto per avviare il flusso di pagamento con carta.
+ */
 public class CardPaymentCommand extends AbstractPaymentCommand {
 
     private final ClienteController receiver;
@@ -12,6 +15,9 @@ public class CardPaymentCommand extends AbstractPaymentCommand {
         this.totale = totale;
     }
 
+    /**
+     * Delega al controller la visualizzazione del dialog carta.
+     */
     @Override
     protected void doExecute() {
         receiver.apriSchermataPagamentoCarta(totale);

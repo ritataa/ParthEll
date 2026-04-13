@@ -1,5 +1,8 @@
 package model.state;
 
+/**
+ * Stato iniziale di un pagamento non ancora saldato.
+ */
 public class DaPagareState implements PagamentoState {
 
     @Override
@@ -12,6 +15,9 @@ public class DaPagareState implements PagamentoState {
         return true;
     }
 
+    /**
+     * La conferma di pagamento porta allo stato confermato.
+     */
     @Override
     public PagamentoState pay() {
         return new PagamentoConfermatoState();

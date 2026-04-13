@@ -8,6 +8,9 @@ import javafx.scene.layout.Region;
 import model.Pagamento;
 import service.UIFormatsService;
 
+/**
+ * Configura la tabella storico pagamenti con formatter e stili condizionali.
+ */
 public class StoricoPagamentiTableConfigurator {
 
     private final UIFormatsService formatsService;
@@ -16,6 +19,9 @@ public class StoricoPagamentiTableConfigurator {
         this.formatsService = formatsService;
     }
 
+    /**
+     * Applica cell factory e row factory per visualizzazione importi, promo e stato.
+     */
     public void configure(
         TableView<Pagamento> storicoPagamentiTable,
         TableColumn<Pagamento, String> mesePagamentoColumn,

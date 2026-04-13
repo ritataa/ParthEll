@@ -1,5 +1,8 @@
 package model.state;
 
+/**
+ * Stato terminale di un pagamento gia confermato.
+ */
 public class PagamentoConfermatoState implements PagamentoState {
 
     @Override
@@ -12,6 +15,9 @@ public class PagamentoConfermatoState implements PagamentoState {
         return false;
     }
 
+    /**
+     * Stato immutabile: una nuova conferma non produce transizioni.
+     */
     @Override
     public PagamentoState pay() {
         return this;

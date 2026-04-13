@@ -9,6 +9,13 @@ import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
 
+/**
+ * Proxy del repository applicativo.
+ *
+ * Delega in modo trasparente tutte le operazioni a un'istanza reale di
+ * {@link TelecomRepository}, mantenendo un punto unico in cui introdurre in
+ * futuro controlli, logging o policy trasversali senza toccare i client.
+ */
 public class TelecomRepositoryProxy extends TelecomRepository {
 
     private final TelecomRepository target = new TelecomRepository();

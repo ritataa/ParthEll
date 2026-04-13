@@ -9,8 +9,14 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import service.AuthFacade;
 
+/**
+ * Gestisce la navigazione verso la schermata di login.
+ */
 public class LoginNavigator {
 
+    /**
+     * Effettua logout e sostituisce la scena corrente con la login.
+     */
     public void navigateToLogin(Node source, AuthFacade authFacade) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/login.fxml"));
         Parent root = loader.load();

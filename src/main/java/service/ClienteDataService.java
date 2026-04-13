@@ -9,6 +9,9 @@ import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
 
+/**
+ * Servizio applicativo dedicato al caricamento dati dell'area cliente.
+ */
 public class ClienteDataService {
 
     private final TelecomRepository repository;
@@ -17,6 +20,9 @@ public class ClienteDataService {
         this.repository = repository;
     }
 
+    /**
+     * Restituisce il nome del cliente associato all'email corrente.
+     */
     public String findNomeCliente(String email) {
         return repository.findNomeByEmail(email);
     }
@@ -38,6 +44,9 @@ public class ClienteDataService {
         return repository.getStoricoPagamenti(email);
     }
 
+    /**
+     * Carica un'istantanea completa della situazione cliente per la UI.
+     */
     public ClienteSnapshot loadSnapshot(String email) {
         if (email == null || email.isBlank()) {
             return new ClienteSnapshot(null, null);
@@ -47,6 +56,9 @@ public class ClienteDataService {
         return new ClienteSnapshot(utilizzo, pianoTariffario);
     }
 
+    /**
+     * Calcola il totale mensile aggiornando prima il mese corrente.
+     */
     public double calcolaTotaleMensile(String email) {
         if (email == null || email.isBlank()) {
             return 0.0;
@@ -59,6 +71,9 @@ public class ClienteDataService {
         return repository.saldaPagamento(email, mese, anno);
     }
 
+    /**
+     * DTO immutabile con utilizzo e piano tariffario correnti.
+     */
     public record ClienteSnapshot(Utilizzo utilizzo, PianoTariffario pianoTariffario) {
     }
 }
