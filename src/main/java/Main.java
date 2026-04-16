@@ -5,13 +5,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import service.DatabaseManager;
+import service.DatabaseFacade;
 
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            DatabaseManager.getInstance().initializeDatabase();
+            new DatabaseFacade().initSystem();
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/login.fxml"));
             Parent root = loader.load();
