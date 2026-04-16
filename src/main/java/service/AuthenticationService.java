@@ -10,8 +10,8 @@ package service;
  */
 public class AuthenticationService {
     
-    /** Istanza singleton del servizio di autenticazione */
-    private static AuthenticationService instance;
+    /** Istanza singleton del servizio di autenticazione (inizializzazione eager) */
+    private static final AuthenticationService INSTANCE = new AuthenticationService();
     
     private final TelecomRepository repository = new TelecomRepositoryProxy();
     
@@ -26,11 +26,8 @@ public class AuthenticationService {
      * 
      * @return l'istanza singleton di AuthenticationService
      */
-    public static synchronized AuthenticationService getInstance() {
-        if (instance == null) {
-            instance = new AuthenticationService();
-        }
-        return instance;
+    public static AuthenticationService getInstance() {
+        return INSTANCE;
     }
     
     /**
