@@ -25,3 +25,4 @@ public final class DatabaseManager {
         return CONNECTION_MANAGER.getConnection();
     }
 }
+
