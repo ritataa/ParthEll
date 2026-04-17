@@ -9,15 +9,19 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import service.FormInputValidator;
 import service.TelecomRepository;
 import service.TelecomRepositoryProxy;
 
 public class RegisterController {
 
     private final TelecomRepository repository = new TelecomRepositoryProxy();
+    private final FormInputValidator validator = new FormInputValidator();
 
     @FXML private TextField emailField;
     @FXML private TextField passwordField;
@@ -26,12 +30,47 @@ public class RegisterController {
     @FXML private TextField residenzaField;
     @FXML private TextField numeroField;
     @FXML private ComboBox<String> pianoField;
+    @FXML private ChoiceBox<String> contoField;
+    @FXML private Label cartaLabel;
+    @FXML private TextField numeroCartaField;
+    @FXML private TextField scadenzaCartaField;
+    @FXML private TextField cvvCartaField;
+    @FXML private TextField intestatarioCartaField;
 
     public void initialize() {
         pianoField.getItems().setAll(repository.findAllPianiTariffari());
         if (!pianoField.getItems().isEmpty()) {
             pianoField.setValue("base");
         }
+
+        contoField.getItems().setAll("Ricaricabile", "Fisso");
+        contoField.setValue("Fisso");
+
+        // Mostra/nascondi i campi della carta in base al conto selezionato
+        contoField.valueProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isFisso = "Fisso".equals(newVal);
+            cartaLabel.setVisible(isFisso);
+            numeroCartaField.setVisible(isFisso);
+            scadenzaCartaField.setVisible(isFisso);
+            cvvCartaField.setVisible(isFisso);
+            intestatarioCartaField.setVisible(isFisso);
+
+            if (!isFisso) {
+                // Pulisci i campi se cambi a Ricaricabile
+                numeroCartaField.clear();
+                scadenzaCartaField.clear();
+                cvvCartaField.clear();
+                intestatarioCartaField.clear();
+            }
+        });
+
+        // Inizialmente nascondi se il default è Ricaricabile (anche se il default è Fisso)
+        boolean isFisso = "Fisso".equals(contoField.getValue());
+        cartaLabel.setVisible(isFisso);
+        numeroCartaField.setVisible(isFisso);
+        scadenzaCartaField.setVisible(isFisso);
+        cvvCartaField.setVisible(isFisso);
+        intestatarioCartaField.setVisible(isFisso);
     }
 
     @FXML
@@ -43,20 +82,49 @@ public class RegisterController {
         String residenza = residenzaField.getText();
         String numero = numeroField.getText();
         String piano = pianoField.getValue();
+        String conto = contoField.getValue();
 
         if (isBlank(email) || isBlank(password) || isBlank(nome) || isBlank(cognome)
-            || isBlank(residenza) || isBlank(numero) || isBlank(piano)) {
+            || isBlank(residenza) || isBlank(numero) || isBlank(piano) || isBlank(conto)) {
             showAlert(Alert.AlertType.WARNING, "Attenzione", "Compila tutti i campi!");
             return;
         }
 
-        try {
-            repository.registerCliente(email, password, nome, cognome, residenza, numero, piano);
-            repository.inizializzaStoricoNuovoUtente(email);
-            showAlert(Alert.AlertType.INFORMATION, "Registrazione", "Account creato con successo!");
-            tornaAlLogin(event);
-        } catch (RuntimeException exception) {
-            showAlert(Alert.AlertType.ERROR, "Errore", "Registrazione non riuscita (email o numero già esistenti).");
+        // Se Fisso, validare i dati della carta
+        if ("Fisso".equals(conto)) {
+            String numeroCarta = numeroCartaField.getText().trim();
+            String scadenza = scadenzaCartaField.getText().trim();
+            String cvv = cvvCartaField.getText().trim();
+            String intestatario = intestatarioCartaField.getText().trim();
+
+            if (isBlank(numeroCarta) || isBlank(scadenza) || isBlank(cvv) || isBlank(intestatario)) {
+                showAlert(Alert.AlertType.WARNING, "Attenzione", "Per il conto Fisso, inserisci tutti i dati della carta!");
+                return;
+            }
+
+            if (!validator.isValidCardData(intestatario, numeroCarta, scadenza, cvv)) {
+                showAlert(Alert.AlertType.WARNING, "Dati carta non validi", "Numero 16 cifre, scadenza MM/AA, CVV 3 cifre.");
+                return;
+            }
+
+            try {
+                repository.registerCliente(email, password, nome, cognome, residenza, numero, piano, conto, numeroCarta, scadenza, cvv, intestatario);
+                repository.inizializzaStoricoNuovoUtente(email);
+                showAlert(Alert.AlertType.INFORMATION, "Registrazione", "Account creato con successo!");
+                tornaAlLogin(event);
+            } catch (RuntimeException exception) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "Registrazione non riuscita (email o numero già esistenti).");
+            }
+        } else {
+            // Ricaricabile: niente dati carta
+            try {
+                repository.registerCliente(email, password, nome, cognome, residenza, numero, piano, conto);
+                repository.inizializzaStoricoNuovoUtente(email);
+                showAlert(Alert.AlertType.INFORMATION, "Registrazione", "Account creato con successo!");
+                tornaAlLogin(event);
+            } catch (RuntimeException exception) {
+                showAlert(Alert.AlertType.ERROR, "Errore", "Registrazione non riuscita (email o numero già esistenti).");
+            }
         }
     }
 

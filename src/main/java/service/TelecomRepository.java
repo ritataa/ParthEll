@@ -14,6 +14,9 @@ import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
+import model.conto.Conto;
+import model.conto.ContoFisso;
+import model.conto.ContoRicaricabile;
 
 /**
  * Repository JDBC per accesso ai dati applicativi.
@@ -60,6 +63,50 @@ public class TelecomRepository {
             return result;
         } catch (SQLException exception) {
             throw new RuntimeException("Errore lettura abbonati", exception);
+        }
+    }
+
+    public Abbonato findAbbonatoByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+
+        String sql = """
+            SELECT nome, cognome, email, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta
+            FROM abbonato
+            WHERE email = ?
+            """;
+
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email.trim());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+
+                String contoDbValue = resultSet.getString("conto");
+                double saldo = resultSet.getDouble("saldo");
+                Conto conto = "ricaricabile".equalsIgnoreCase(contoDbValue)
+                    ? new ContoRicaricabile(Math.max(0.0, saldo))
+                    : new ContoFisso();
+
+                return Abbonato.builder()
+                    .nome(resultSet.getString("nome"))
+                    .cognome(resultSet.getString("cognome"))
+                    .email(resultSet.getString("email"))
+                    .residenza(resultSet.getString("residenza"))
+                    .numeroTelefono(resultSet.getString("numero_telefono"))
+                    .pianoTariffario(resultSet.getString("piano_tariffario"))
+                    .conto(conto)
+                    .numeroCarta(resultSet.getString("numero_carta"))
+                    .scadenzaCarta(resultSet.getString("scadenza_carta"))
+                    .cvvCarta(resultSet.getString("cvv_carta"))
+                    .intestatarioCarta(resultSet.getString("intestatario_carta"))
+                    .build();
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore lettura abbonato", exception);
         }
     }
 
@@ -140,8 +187,8 @@ public class TelecomRepository {
 
     public void addCliente(String email, String password, String nome, String cognome) {
         String sql = """
-            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (Connection connection = databaseManager.getConnection();
@@ -154,7 +201,8 @@ public class TelecomRepository {
             statement.setString(5, "N/D");
             statement.setString(6, numeroTelefono);
             statement.setString(7, "base");
-            statement.setDouble(8, 0.0);
+            statement.setString(8, "Fisso");
+            statement.setDouble(9, 0.0);
             statement.executeUpdate();
             createUtilizzoIfMissing(connection, numeroTelefono);
         } catch (SQLException exception) {
@@ -169,33 +217,95 @@ public class TelecomRepository {
         String cognome,
         String residenza,
         String numeroTelefono,
-        String pianoTariffario
+        String pianoTariffario,
+        String conto,
+        String numeroCarta,
+        String scadenzaCarta,
+        String cvvCarta,
+        String intestatarioCarta
     ) {
-        String sql = """
-            INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        // Controllo preliminare: email e numero non devono esistere
+        String checkEmailSql = "SELECT 1 FROM abbonato WHERE email = ?";
+        String checkNumeroSql = "SELECT 1 FROM abbonato WHERE numero_telefono = ?";
 
-        try (Connection connection = databaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            String pianoNormalizzato = pianoTariffario.trim().toLowerCase();
-            if (!existsPianoTariffario(connection, pianoNormalizzato)) {
-                throw new RuntimeException("Piano tariffario non valido");
+        try (Connection connection = databaseManager.getConnection()) {
+            // Verifico email
+            try (PreparedStatement checkEmail = connection.prepareStatement(checkEmailSql)) {
+                checkEmail.setString(1, email.trim());
+                try (ResultSet rs = checkEmail.executeQuery()) {
+                    if (rs.next()) {
+                        throw new RuntimeException("Errore registrazione cliente: email già esistente");
+                    }
+                }
             }
 
-            statement.setString(1, email.trim());
-            statement.setString(2, password);
-            statement.setString(3, nome.trim());
-            statement.setString(4, cognome.trim());
-            statement.setString(5, residenza.trim());
-            statement.setString(6, numeroTelefono.trim());
-            statement.setString(7, pianoNormalizzato);
-            statement.setDouble(8, 0.0);
-            statement.executeUpdate();
-            createUtilizzoIfMissing(connection, numeroTelefono.trim());
+            // Verifico numero
+            try (PreparedStatement checkNumero = connection.prepareStatement(checkNumeroSql)) {
+                checkNumero.setString(1, numeroTelefono.trim());
+                try (ResultSet rs = checkNumero.executeQuery()) {
+                    if (rs.next()) {
+                        throw new RuntimeException("Errore registrazione cliente: numero di telefono già esistente");
+                    }
+                }
+            }
+
+            // Se passa i controlli, eseguo l'INSERT
+            String sql = """
+                INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                String pianoNormalizzato = pianoTariffario.trim().toLowerCase();
+                if (!existsPianoTariffario(connection, pianoNormalizzato)) {
+                    throw new RuntimeException("Piano tariffario non valido");
+                }
+
+                String contoNormalizzato = normalizeContoValue(conto);
+                statement.setString(1, email.trim());
+                statement.setString(2, password);
+                statement.setString(3, nome.trim());
+                statement.setString(4, cognome.trim());
+                statement.setString(5, residenza.trim());
+                statement.setString(6, numeroTelefono.trim());
+                statement.setString(7, pianoNormalizzato);
+                statement.setString(8, contoNormalizzato);
+                statement.setDouble(9, 0.0);
+                statement.setString(10, numeroCarta);
+                statement.setString(11, scadenzaCarta);
+                statement.setString(12, cvvCarta);
+                statement.setString(13, intestatarioCarta);
+                statement.executeUpdate();
+                createUtilizzoIfMissing(connection, numeroTelefono.trim());
+            }
         } catch (SQLException exception) {
             throw new RuntimeException("Errore registrazione cliente", exception);
         }
+    }
+
+    public void registerCliente(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario,
+        String conto
+    ) {
+        registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto, null, null, null, null);
+    }
+
+    public void registerCliente(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario
+    ) {
+        registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, "Fisso");
     }
 
     public boolean aderisciPromozione(String email, String nomePromozione) {
@@ -231,6 +341,21 @@ public class TelecomRepository {
             return statement.executeUpdate() > 0;
         } catch (SQLException exception) {
             throw new RuntimeException("Errore disdetta promozione", exception);
+        }
+    }
+
+    public boolean aggiornaSaldoConto(String email, double nuovoSaldo) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        String sql = "UPDATE abbonato SET saldo = ? WHERE email = ?";
+        try (Connection connection = databaseManager.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setDouble(1, Math.max(0.0, nuovoSaldo));
+            statement.setString(2, email);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException exception) {
+            throw new RuntimeException("Errore aggiornamento saldo conto", exception);
         }
     }
 
@@ -709,6 +834,21 @@ public class TelecomRepository {
         } catch (SQLException exception) {
             throw new RuntimeException("Errore autenticazione", exception);
         }
+    }
+
+    private String normalizeContoValue(String conto) {
+        if (conto == null || conto.isBlank()) {
+            return "Fisso";
+        }
+
+        String normalized = conto.trim();
+        if ("ricaricabile".equalsIgnoreCase(normalized)) {
+            return "Ricaricabile";
+        }
+        if ("fisso".equalsIgnoreCase(normalized)) {
+            return "Fisso";
+        }
+        throw new RuntimeException("Tipo conto non valido");
     }
 
     private void incrementUtilizzo(String email, String updateSql, int value) {

@@ -32,10 +32,10 @@ public final class DatabaseSeeder {
 
         if (isTableEmpty(connection, "abbonato")) {
             new InsertAbbonatoCommand(
-                "anna@gmail.com", "anna123", "Anna", "Rosa", "Salerno", "3339988776", "plus", 10.0)
+                "anna@gmail.com", "anna123", "Anna", "Rosa", "Salerno", "3339988776", "plus", "Ricaricabile", 10.0)
                 .execute(connection);
             new InsertAbbonatoCommand(
-                "sara@gmail.com", "sara123", "Sara", "Rossi", "Milano", "3364384733", "plus", 18.0)
+                "sara@gmail.com", "sara123", "Sara", "Rossi", "Milano", "3364384733", "plus", "Ricaricabile", 18.0)
                 .execute(connection);
         }
 

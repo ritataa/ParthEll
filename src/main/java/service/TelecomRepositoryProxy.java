@@ -31,6 +31,11 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     }
 
     @Override
+    public Abbonato findAbbonatoByEmail(String email) {
+        return target.findAbbonatoByEmail(email);
+    }
+
+    @Override
     public List<Utilizzo> findAllUtilizzi() {
         return target.findAllUtilizzi();
     }
@@ -56,6 +61,38 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String pianoTariffario
     ) {
         target.registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario);
+    }
+
+    @Override
+    public void registerCliente(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario,
+        String conto
+    ) {
+        target.registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto);
+    }
+
+    @Override
+    public void registerCliente(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario,
+        String conto,
+        String numeroCarta,
+        String scadenzaCarta,
+        String cvvCarta,
+        String intestatarioCarta
+    ) {
+        target.registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto, numeroCarta, scadenzaCarta, cvvCarta, intestatarioCarta);
     }
 
     @Override
@@ -101,6 +138,11 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     @Override
     public boolean disdiciPromozione(String email, String nomePromozione) {
         return target.disdiciPromozione(email, nomePromozione);
+    }
+
+    @Override
+    public boolean aggiornaSaldoConto(String email, double nuovoSaldo) {
+        return target.aggiornaSaldoConto(email, nuovoSaldo);
     }
 
     @Override

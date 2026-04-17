@@ -44,7 +44,11 @@ public final class DatabaseSchemaMigrator {
                     numero_telefono TEXT UNIQUE NOT NULL,
                     piano_tariffario TEXT,
                     conto TEXT,
-                    saldo REAL DEFAULT 0
+                    saldo REAL DEFAULT 0,
+                    numero_carta TEXT,
+                    scadenza_carta TEXT,
+                    cvv_carta TEXT,
+                    intestatario_carta TEXT
                 )
                 """);
 
@@ -95,6 +99,7 @@ public final class DatabaseSchemaMigrator {
         migrateLegacyPromoData(connection);
         migrateUtilizzoAnagrafica(connection);
         normalizePianiAbbonati(connection);
+            migrateAbbonatoCartaFields(connection);
     }
 
     private void migratePagamentiPromo(Connection connection) throws SQLException {
@@ -168,6 +173,33 @@ public final class DatabaseSchemaMigrator {
                 """);
             statement.execute("DROP TABLE utilizzo");
             statement.execute("ALTER TABLE utilizzo_new RENAME TO utilizzo");
+        }
+    }
+
+    private void migrateAbbonatoCartaFields(Connection connection) throws SQLException {
+        // Aggiungi i campi della carta se non esistono
+        if (!hasColumn(connection, "abbonato", "numero_carta")) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE abbonato ADD COLUMN numero_carta TEXT");
+            }
+        }
+
+        if (!hasColumn(connection, "abbonato", "scadenza_carta")) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE abbonato ADD COLUMN scadenza_carta TEXT");
+            }
+        }
+
+        if (!hasColumn(connection, "abbonato", "cvv_carta")) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE abbonato ADD COLUMN cvv_carta TEXT");
+            }
+        }
+
+        if (!hasColumn(connection, "abbonato", "intestatario_carta")) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE abbonato ADD COLUMN intestatario_carta TEXT");
+            }
         }
     }
 

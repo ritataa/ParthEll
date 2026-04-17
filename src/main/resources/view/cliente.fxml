@@ -6,8 +6,15 @@
 <AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ClienteController">
    <children>
       <Label fx:id="welcomeLabel" layoutX="250.0" layoutY="30.0" text="Benvenuto Cliente" style="-fx-font-size: 20px;" />
+
+      <VBox layoutX="50.0" layoutY="18.0" spacing="4.0">
+         <children>
+            <Label fx:id="tipoContoLabel" text="Conto: -" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+            <Label fx:id="dettagliContoLabel" text="-" wrapText="true" prefWidth="420.0" />
+         </children>
+      </VBox>
       
-      <TabPane layoutX="50.0" layoutY="80.0" prefHeight="400.0" prefWidth="500.0">
+      <TabPane layoutX="50.0" layoutY="90.0" prefHeight="390.0" prefWidth="500.0">
          <tabs>
             <Tab text="Servizi">
                <content>
@@ -62,18 +69,50 @@
                </content>
             </Tab>
             
-            <Tab text="Pagamenti">
+            <Tab text="Wallet">
                <content>
                   <VBox spacing="10.0" style="-fx-padding: 10;">
                      <children>
-                        <Label text="Metodi di Pagamento" style="-fx-font-size: 16px;" />
-                        <HBox spacing="10.0">
+                        <Label text="Wallet e Pagamenti" style="-fx-font-size: 16px;" />
+                        
+                        <!-- Sezione Pagamenti per Ricaricabile -->
+                        <VBox fx:id="pagamentiRicaricabileBox" spacing="10.0">
                            <children>
-                              <Button fx:id="pagamentoContantiButton" onAction="#handlePagamentoContanti" text="Contanti" />
-                              <Button fx:id="pagamentoCartaButton" onAction="#handlePagamentoCarta" text="Carta" />
-                              <Button fx:id="pagamentoBancomatButton" onAction="#handlePagamentoBancomat" text="Bancomat" />
+                              <Label text="Metodi di Pagamento (Ricarica)" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <Button fx:id="pagamentoContantiButton" onAction="#handlePagamentoContanti" text="Contanti" />
+                                    <Button fx:id="pagamentoCartaButton" onAction="#handlePagamentoCarta" text="Carta" />
+                                    <Button fx:id="pagamentoBancomatButton" onAction="#handlePagamentoBancomat" text="Bancomat" />
+                                 </children>
+                              </HBox>
                            </children>
-                        </HBox>
+                        </VBox>
+                        
+                        <!-- Sezione Wallet per Fisso -->
+                        <VBox fx:id="walletFissoBox" spacing="10.0">
+                           <children>
+                              <Label text="Dati Addebito Automatico" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Tipo Conto:" style="-fx-font-weight: bold;" />
+                                    <Label fx:id="walletTipoContoLabel" text="-" />
+                                 </children>
+                              </HBox>
+                              <HBox spacing="8.0">
+                                 <children>
+                                    <Label text="Addebito Automatico:" style="-fx-font-weight: bold;" />
+                                    <Label fx:id="walletAddebitoLabel" text="Abilitato" />
+                                 </children>
+                              </HBox>
+                              <Label text="Intestatario Carta" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
+                              <Label fx:id="walletIntestatarioLabel" text="-" />
+                              <Label text="Numero Carta" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
+                              <Label fx:id="walletNumeroCartaLabel" text="-" />
+                              <Label text="Scadenza" style="-fx-font-size: 12px; -fx-font-weight: bold;" />
+                              <Label fx:id="walletScadenzaLabel" text="-" />
+                           </children>
+                        </VBox>
                      </children>
                   </VBox>
                </content>
@@ -190,8 +229,9 @@
                               </HBox>
                               <Label text="Promo completa" textFill="WHITE" />
                               <TextArea fx:id="dettaglioPromoArea" editable="false" wrapText="true" prefHeight="150.0" />
-                              <HBox alignment="CENTER_RIGHT">
+                              <HBox alignment="CENTER_RIGHT" spacing="10.0">
                                  <children>
+                                    <Button fx:id="pagaDaSaldoButton" onAction="#handlePagaDaSaldoDettaglio" text="Paga" />
                                     <Button fx:id="indietroStoricoButton" onAction="#handleIndietroStorico" text="Indietro" />
                                  </children>
                               </HBox>

@@ -17,12 +17,16 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
+import model.Abbonato;
 import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
+import model.conto.ContoFisso;
+import model.conto.ContoRicaricabile;
 import service.AlertManager;
 import service.AuthFacade;
 import service.ClienteDataService;
@@ -82,6 +86,15 @@ public class ClienteController {
     @FXML private Label minutiResiduiLabel;
     @FXML private Label gigaResiduiLabel;
     @FXML private Label promozioniAttiveLabel;
+    @FXML private Label tipoContoLabel;
+    @FXML private Label dettagliContoLabel;
+    @FXML private VBox pagamentiRicaricabileBox;
+    @FXML private VBox walletFissoBox;
+    @FXML private Label walletTipoContoLabel;
+    @FXML private Label walletAddebitoLabel;
+    @FXML private Label walletIntestatarioLabel;
+    @FXML private Label walletNumeroCartaLabel;
+    @FXML private Label walletScadenzaLabel;
 
     private final ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
 
@@ -165,6 +178,31 @@ public class ClienteController {
         if (storageDetailsViewController != null) {
             storageDetailsViewController.hideDetails();
         }
+    }
+
+    @FXML
+    public void handlePagaDaSaldoDettaglio(ActionEvent event) {
+        String email = UserSession.getInstance().getCurrentEmail();
+        Abbonato abbonato = repository.findAbbonatoByEmail(email);
+        if (abbonato == null || abbonato.getConto() == null) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Pagamento", "Impossibile recuperare i dati conto.");
+            return;
+        }
+
+        if (!(abbonato.getConto() instanceof ContoRicaricabile contoRicaricabile)) {
+            showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Pagamento", "Il pagamento da saldo è disponibile solo per i conti ricaricabili.");
+            return;
+        }
+
+        Pagamento selezionato = storicoPagamentiTable == null ? null : storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        if (selezionato == null || !selezionato.isPagabile()) {
+            showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Pagamento", "Seleziona una riga 'Da pagare' nello storico.");
+            return;
+        }
+
+        provaPagamentoStoricoDaSaldo(email, contoRicaricabile);
+        aggiornaSituazioneAttuale();
+        caricaStoricoPagamenti();
     }
 
     @FXML
@@ -281,17 +319,192 @@ public class ClienteController {
 
     @FXML
     public void handlePagamentoContanti(ActionEvent event) {
-        new CashPaymentCommand(this, getTotaleMensileCorrente()).execute();
+        gestisciRichiestaPagamento("Contanti", () -> new CashPaymentCommand(this, getTotaleMensileCorrente()).execute());
     }
 
     @FXML
     public void handlePagamentoCarta(ActionEvent event) {
-        new CardPaymentCommand(this, getTotaleMensileCorrente()).execute();
+        gestisciRichiestaPagamento("Carta", () -> new CardPaymentCommand(this, getTotaleMensileCorrente()).execute());
     }
 
     @FXML
     public void handlePagamentoBancomat(ActionEvent event) {
-        new BancomatPaymentCommand(this, getTotaleMensileCorrente()).execute();
+        gestisciRichiestaPagamento("Bancomat", () -> new BancomatPaymentCommand(this, getTotaleMensileCorrente()).execute());
+    }
+
+    /**
+     * Il "Filtro" Polimorfico: decide se aprire l'interfaccia grafica dei pagamenti
+     * o se scalare direttamente i soldi dal conto ricaricabile.
+     */
+    private void gestisciRichiestaPagamento(String metodoPagamento, Runnable apriFinestraPagamentoCommand) {
+        String email = UserSession.getInstance().getCurrentEmail();
+        Abbonato abbonatoLoggato = repository.findAbbonatoByEmail(email); 
+        
+        if (abbonatoLoggato == null || abbonatoLoggato.getConto() == null) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Errore", "Impossibile recuperare i dati del conto.");
+            return;
+        }
+
+        if (abbonatoLoggato.getConto() instanceof ContoRicaricabile contoRicaricabile) {
+            gestisciRicaricaConto(email, contoRicaricabile, metodoPagamento);
+            return;
+        }
+
+        Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        if (selezionato == null || !selezionato.isPagabile()) {
+            showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Pagamento", "Seleziona una riga da pagare dallo storico.");
+            return;
+        }
+
+        double importoDaPagare = selezionato.getImporto();
+        model.conto.Conto conto = abbonatoLoggato.getConto();
+
+        // 1. IL POLIMORFISMO IN AZIONE: Chiediamo al conto se serve la carta di credito/contanti
+        if (conto.richiedePagamentoImmediato(importoDaPagare)) {
+            // 2A. Conto Fisso o Ricaricabile senza fondi: Apri l'interfaccia di pagamento
+            apriFinestraPagamentoCommand.run(); 
+        } else {
+            // 2B. Conto Ricaricabile con fondi sufficienti: Paga invisibilmente
+            conto.addebita(importoDaPagare);
+            
+            // Dato che ha pagato internamente col saldo, aggiorniamo subito il DB
+            boolean saldato = dataService.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
+            
+            if (saldato) {
+                showAlert(javafx.scene.control.Alert.AlertType.INFORMATION, "Successo", "Pagamento effettuato con successo scalando dal saldo disponibile (" + conto.getSaldo() + "€ residui).");
+                caricaStoricoPagamenti(); // Ricarichiamo la tabella
+            } else {
+                showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Errore DB", "Impossibile aggiornare lo stato del pagamento.");
+            }
+        }
+    }
+
+    private void gestisciRicaricaConto(String email, ContoRicaricabile contoRicaricabile, String metodoPagamento) {
+        Double importoRicarica = chiediImportoRicarica(metodoPagamento);
+        if (importoRicarica == null) {
+            return;
+        }
+
+        // Se Carta o Bancomat, apri il dialog di pagamento per validare i dati
+        if ("Carta".equals(metodoPagamento) || "Bancomat".equals(metodoPagamento)) {
+            if (!mostraDialogoPagamento(metodoPagamento, importoRicarica)) {
+                showAlert(javafx.scene.control.Alert.AlertType.INFORMATION, "Ricarica", "Pagamento annullato. Ricarica non effettuata.");
+                return;
+            }
+        }
+
+        try {
+            contoRicaricabile.ricarica(importoRicarica);
+        } catch (IllegalArgumentException exception) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Ricarica", exception.getMessage());
+            return;
+        }
+
+        boolean saldoAggiornato = repository.aggiornaSaldoConto(email, contoRicaricabile.getSaldo());
+        if (!saldoAggiornato) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Ricarica", "Impossibile aggiornare il saldo nel database.");
+            return;
+        }
+
+        showAlert(
+            javafx.scene.control.Alert.AlertType.INFORMATION,
+            "Ricarica completata",
+            String.format("Ricarica %s effettuata: € %.2f. Saldo attuale: € %.2f", metodoPagamento, importoRicarica, contoRicaricabile.getSaldo())
+        );
+
+        provaPagamentoStoricoDaSaldo(email, contoRicaricabile);
+        aggiornaSituazioneAttuale();
+        caricaStoricoPagamenti();
+    }
+
+    /**
+     * Mostra il dialog di pagamento (Carta o Bancomat) per validare i dati inseriti.
+     * Ritorna true se confermato dall'utente, false se cancellato.
+     */
+    private boolean mostraDialogoPagamento(String metodoPagamento, double importo) {
+        java.util.concurrent.atomic.AtomicBoolean confermato = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        if ("Carta".equals(metodoPagamento)) {
+            paymentDialogFactory.showCardDialog(
+                storicoPagamentiTable.getScene().getWindow(),
+                importo,
+                () -> {
+                    confermato.set(true);
+                    return true;
+                }
+            );
+        } else if ("Bancomat".equals(metodoPagamento)) {
+            paymentDialogFactory.showBancomatDialog(
+                storicoPagamentiTable.getScene().getWindow(),
+                importo,
+                () -> {
+                    confermato.set(true);
+                    return true;
+                }
+            );
+        }
+
+        return confermato.get();
+    }
+
+    private Double chiediImportoRicarica(String metodoPagamento) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Ricarica conto");
+        dialog.setHeaderText("Metodo: " + metodoPagamento);
+        dialog.setContentText("Quanto vuoi caricare?");
+
+        String valore = dialog.showAndWait().orElse(null);
+        if (valore == null) {
+            return null;
+        }
+
+        try {
+            double importo = Double.parseDouble(valore.trim().replace(',', '.'));
+            if (importo <= 0) {
+                showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Ricarica", "Inserisci un importo maggiore di zero.");
+                return null;
+            }
+            return importo;
+        } catch (NumberFormatException exception) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Ricarica", "Importo non valido.");
+            return null;
+        }
+    }
+
+    private void provaPagamentoStoricoDaSaldo(String email, ContoRicaricabile contoRicaricabile) {
+        Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        if (selezionato == null || !selezionato.isPagabile()) {
+            return;
+        }
+
+        double importoDaPagare = selezionato.getImporto();
+        if (contoRicaricabile.richiedePagamentoImmediato(importoDaPagare)) {
+            showAlert(
+                javafx.scene.control.Alert.AlertType.INFORMATION,
+                "Pagamento non completato",
+                String.format("Saldo ancora insufficiente per pagare %s %d. Importo richiesto: € %.2f", selezionato.getMese(), selezionato.getAnno(), importoDaPagare)
+            );
+            return;
+        }
+
+        contoRicaricabile.addebita(importoDaPagare);
+        boolean saldoAggiornato = repository.aggiornaSaldoConto(email, contoRicaricabile.getSaldo());
+        if (!saldoAggiornato) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Errore DB", "Pagamento non salvato: errore aggiornamento saldo.");
+            return;
+        }
+
+        boolean saldato = dataService.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
+        if (!saldato) {
+            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Errore DB", "Pagamento non salvato nello storico.");
+            return;
+        }
+
+        showAlert(
+            javafx.scene.control.Alert.AlertType.INFORMATION,
+            "Pagamento effettuato",
+            String.format("Pagamento %s %d saldato dal conto ricaricabile. Saldo residuo: € %.2f", selezionato.getMese(), selezionato.getAnno(), contoRicaricabile.getSaldo())
+        );
     }
 
     @FXML
@@ -307,6 +520,81 @@ public class ClienteController {
         String email = UserSession.getInstance().getCurrentEmail();
         if (email == null || email.isBlank()) {
             return;
+        }
+
+        Abbonato abbonato = repository.findAbbonatoByEmail(email);
+        if (abbonato == null || abbonato.getConto() == null) {
+            impostaSituazioneFallback();
+            return;
+        }
+
+        if (abbonato.getConto() instanceof ContoRicaricabile contoRicaricabile) {
+            if (tipoContoLabel != null) {
+                tipoContoLabel.setText("Conto Ricaricabile");
+            }
+            if (dettagliContoLabel != null) {
+                dettagliContoLabel.setText(String.format("Saldo disponibile: € %.2f", contoRicaricabile.getSaldo()));
+            }
+            // Mostra i pulsanti di pagamento, nascondi il wallet
+            if (pagamentiRicaricabileBox != null) {
+                pagamentiRicaricabileBox.setVisible(true);
+            }
+            if (walletFissoBox != null) {
+                walletFissoBox.setVisible(false);
+            }
+        } else if (abbonato.getConto() instanceof ContoFisso) {
+            if (tipoContoLabel != null) {
+                tipoContoLabel.setText("Conto Fisso");
+            }
+            if (dettagliContoLabel != null) {
+                dettagliContoLabel.setText("Addebito automatico a fine mese (giorno 30)");
+            }
+            // Nascondi i pulsanti di pagamento, mostra il wallet con i dati della carta
+            if (pagamentiRicaricabileBox != null) {
+                pagamentiRicaricabileBox.setVisible(false);
+            }
+            if (walletFissoBox != null) {
+                walletFissoBox.setVisible(true);
+                if (walletTipoContoLabel != null) {
+                    walletTipoContoLabel.setText("Conto Fisso");
+                }
+                if (walletAddebitoLabel != null) {
+                    walletAddebitoLabel.setText("Abilitato - Addebito automatico il 30 di ogni mese");
+                }
+                // Mostra i dati della carta
+                if (abbonato.getIntestatarioCarta() != null) {
+                    if (walletIntestatarioLabel != null) {
+                        walletIntestatarioLabel.setText(abbonato.getIntestatarioCarta());
+                    }
+                } else {
+                    if (walletIntestatarioLabel != null) {
+                        walletIntestatarioLabel.setText("-");
+                    }
+                }
+                if (abbonato.getNumeroCarta() != null) {
+                    if (walletNumeroCartaLabel != null) {
+                        // Mostra solo le ultime 4 cifre per sicurezza
+                        String numeroCarta = abbonato.getNumeroCarta();
+                        String displayCarta = numeroCarta.length() >= 4 
+                            ? "****" + numeroCarta.substring(numeroCarta.length() - 4)
+                            : numeroCarta;
+                        walletNumeroCartaLabel.setText(displayCarta);
+                    }
+                } else {
+                    if (walletNumeroCartaLabel != null) {
+                        walletNumeroCartaLabel.setText("-");
+                    }
+                }
+                if (abbonato.getScadenzaCarta() != null) {
+                    if (walletScadenzaLabel != null) {
+                        walletScadenzaLabel.setText(abbonato.getScadenzaCarta());
+                    }
+                } else {
+                    if (walletScadenzaLabel != null) {
+                        walletScadenzaLabel.setText("-");
+                    }
+                }
+            }
         }
 
         Utilizzo utilizzo;
@@ -390,6 +678,12 @@ public class ClienteController {
         if (promozioniAttiveLabel != null) {
             promozioniAttiveLabel.setText("Nessuna");
         }
+        if (tipoContoLabel != null) {
+            tipoContoLabel.setText("Conto: -");
+        }
+        if (dettagliContoLabel != null) {
+            dettagliContoLabel.setText("-");
+        }
     }
 
     private void showAlert(javafx.scene.control.Alert.AlertType alertType, String title, String message) {
@@ -427,27 +721,9 @@ public class ClienteController {
 
     private boolean confermaPagamentoSelezionato() {
         String email = UserSession.getInstance().getCurrentEmail();
-        if (email == null || email.isBlank()) {
-            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Pagamento", "Sessione utente non valida.");
-            return false;
-        }
-
-        if (storicoPagamentiTable == null) {
-            showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Pagamento", "Tabella storico non disponibile.");
-            return false;
-        }
-
+        
         Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
-        if (selezionato == null) {
-            showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Pagamento", "Seleziona una riga dello storico da saldare.");
-            return false;
-        }
-
-        if (!selezionato.isPagabile()) {
-            showAlert(javafx.scene.control.Alert.AlertType.INFORMATION, "Pagamento", "La riga selezionata risulta gia confermata.");
-            return false;
-        }
-
+        
         selezionato.confermaPagamentoState();
 
         boolean saldato = dataService.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());

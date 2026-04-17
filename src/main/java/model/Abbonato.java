@@ -1,5 +1,8 @@
 package model;
 
+import model.conto.Conto;
+import model.conto.ContoFisso;
+
 public class Abbonato {
     private String nome;
     private String cognome;
@@ -7,9 +10,16 @@ public class Abbonato {
     private String residenza;
     private String numeroTelefono;
     private String pianoTariffario;
+    private Conto conto;
+    private String numeroCarta;
+    private String scadenzaCarta;
+    private String cvvCarta;
+    private String intestatarioCarta;
 
     // Costruttore vuoto
-    public Abbonato() {}
+    public Abbonato() {
+        this.conto = new ContoFisso(); // Default: conto fisso (pay-as-you-go)
+    }
 
     // Costruttore completo
     public Abbonato(String nome, String cognome, String email, String residenza, 
@@ -20,11 +30,27 @@ public class Abbonato {
         this.residenza = residenza;
         this.numeroTelefono = numeroTelefono;
         this.pianoTariffario = pianoTariffario;
+        this.conto = new ContoFisso(); // Default: conto fisso
+    }
+
+    // Costruttore completo con Conto
+    public Abbonato(String nome, String cognome, String email, String residenza,
+                   String numeroTelefono, String pianoTariffario, Conto conto) {
+        this.nome = nome;
+        this.cognome = cognome;
+        this.email = email;
+        this.residenza = residenza;
+        this.numeroTelefono = numeroTelefono;
+        this.pianoTariffario = pianoTariffario;
+        this.conto = conto != null ? conto : new ContoFisso();
     }
 
     // Getter e Setter
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
+
+    public Conto getConto() { return conto; }
+    public void setConto(Conto conto) { this.conto = conto != null ? conto : new ContoFisso(); }
 
     public String getCognome() { return cognome; }
     public void setCognome(String cognome) { this.cognome = cognome; }
@@ -41,6 +67,18 @@ public class Abbonato {
     public String getPianoTariffario() { return pianoTariffario; }
     public void setPianoTariffario(String pianoTariffario) { this.pianoTariffario = pianoTariffario; }
 
+    public String getNumeroCarta() { return numeroCarta; }
+    public void setNumeroCarta(String numeroCarta) { this.numeroCarta = numeroCarta; }
+
+    public String getScadenzaCarta() { return scadenzaCarta; }
+    public void setScadenzaCarta(String scadenzaCarta) { this.scadenzaCarta = scadenzaCarta; }
+
+    public String getCvvCarta() { return cvvCarta; }
+    public void setCvvCarta(String cvvCarta) { this.cvvCarta = cvvCarta; }
+
+    public String getIntestatarioCarta() { return intestatarioCarta; }
+    public void setIntestatarioCarta(String intestatarioCarta) { this.intestatarioCarta = intestatarioCarta; }
+
     @Override
     public String toString() {
         return "Abbonato{" +
@@ -48,6 +86,7 @@ public class Abbonato {
                 ", cognome='" + cognome + '\'' +
                 ", email='" + email + '\'' +
                 ", pianoTariffario='" + pianoTariffario + '\'' +
+                ", conto=" + conto +
                 '}';
     }
 
@@ -62,8 +101,14 @@ public class Abbonato {
         private String residenza;
         private String numeroTelefono;
         private String pianoTariffario;
+        private Conto conto;
+        private String numeroCarta;
+        private String scadenzaCarta;
+        private String cvvCarta;
+        private String intestatarioCarta;
 
         private Builder() {
+            this.conto = new ContoFisso();
         }
 
         public Builder nome(String nome) {
@@ -96,8 +141,38 @@ public class Abbonato {
             return this;
         }
 
+        public Builder conto(Conto conto) {
+            this.conto = conto != null ? conto : new ContoFisso();
+            return this;
+        }
+
+        public Builder numeroCarta(String numeroCarta) {
+            this.numeroCarta = numeroCarta;
+            return this;
+        }
+
+        public Builder scadenzaCarta(String scadenzaCarta) {
+            this.scadenzaCarta = scadenzaCarta;
+            return this;
+        }
+
+        public Builder cvvCarta(String cvvCarta) {
+            this.cvvCarta = cvvCarta;
+            return this;
+        }
+
+        public Builder intestatarioCarta(String intestatarioCarta) {
+            this.intestatarioCarta = intestatarioCarta;
+            return this;
+        }
+
         public Abbonato build() {
-            return new Abbonato(nome, cognome, email, residenza, numeroTelefono, pianoTariffario);
+            Abbonato abbonato = new Abbonato(nome, cognome, email, residenza, numeroTelefono, pianoTariffario, conto);
+            abbonato.numeroCarta = this.numeroCarta;
+            abbonato.scadenzaCarta = this.scadenzaCarta;
+            abbonato.cvvCarta = this.cvvCarta;
+            abbonato.intestatarioCarta = this.intestatarioCarta;
+            return abbonato;
         }
     }
 }

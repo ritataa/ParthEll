@@ -23,6 +23,7 @@ public final class DatabaseConnectionManager {
         }
     }
 
+    
     public static DatabaseConnectionManager getInstance() {
         return INSTANCE;
     }

@@ -10,8 +10,8 @@ import java.sql.SQLException;
 public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
 
     private static final String SQL = """
-        INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, saldo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
     private final String email;
@@ -21,8 +21,59 @@ public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
     private final String residenza;
     private final String numeroTelefono;
     private final String pianoTariffario;
+    private final String conto;
     private final double saldo;
+    private final String numeroCarta;
+    private final String scadenzaCarta;
+    private final String cvvCarta;
+    private final String intestatarioCarta;
 
+    public InsertAbbonatoCommand(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario,
+        String conto,
+        double saldo,
+        String numeroCarta,
+        String scadenzaCarta,
+        String cvvCarta,
+        String intestatarioCarta
+    ) {
+        this.email = email;
+        this.password = password;
+        this.nome = nome;
+        this.cognome = cognome;
+        this.residenza = residenza;
+        this.numeroTelefono = numeroTelefono;
+        this.pianoTariffario = pianoTariffario;
+        this.conto = conto;
+        this.saldo = saldo;
+        this.numeroCarta = numeroCarta;
+        this.scadenzaCarta = scadenzaCarta;
+        this.cvvCarta = cvvCarta;
+        this.intestatarioCarta = intestatarioCarta;
+    }
+
+    // Backward compatibility per Ricaricabile (senza dati carta)
+    public InsertAbbonatoCommand(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario,
+        String conto,
+        double saldo
+    ) {
+        this(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto, saldo, null, null, null, null);
+    }
+
+    // Backward compatibility per Ricaricabile
     public InsertAbbonatoCommand(
         String email,
         String password,
@@ -33,14 +84,7 @@ public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
         String pianoTariffario,
         double saldo
     ) {
-        this.email = email;
-        this.password = password;
-        this.nome = nome;
-        this.cognome = cognome;
-        this.residenza = residenza;
-        this.numeroTelefono = numeroTelefono;
-        this.pianoTariffario = pianoTariffario;
-        this.saldo = saldo;
+        this(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, "Fisso", saldo, null, null, null, null);
     }
 
     @Override
@@ -53,7 +97,12 @@ public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
             statement.setString(5, residenza);
             statement.setString(6, numeroTelefono);
             statement.setString(7, pianoTariffario);
-            statement.setDouble(8, saldo);
+            statement.setString(8, conto);
+            statement.setDouble(9, saldo);
+            statement.setString(10, numeroCarta);
+            statement.setString(11, scadenzaCarta);
+            statement.setString(12, cvvCarta);
+            statement.setString(13, intestatarioCarta);
             return statement.executeUpdate();
         }
     }
