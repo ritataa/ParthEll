@@ -32,7 +32,7 @@ public class ContoRicaricabile implements Conto {
     /**
      * Verifica se l'importo eccede il saldo disponibile.
      * Se l'importo > saldo: è richiesto un pagamento immediato.
-     * Se l'importo <= saldo: può essere addebitato direttamente.
+        * Se l'importo &lt;= saldo: può essere addebitato direttamente.
      */
     @Override
     public boolean richiedePagamentoImmediato(double importo) {
