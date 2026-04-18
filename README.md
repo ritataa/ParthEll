@@ -64,7 +64,7 @@ Pattern GoF:
 * Template Method: [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) con algoritmo `execute()` e passi demandati ai command concreti
 * State: [model.Pagamento](src/main/java/model/Pagamento.java) con stati in [src/main/java/model/state](src/main/java/model/state)
 * Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java), [service.DatabaseFacade](src/main/java/service/DatabaseFacade.java)
-* Proxy: [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
+* Proxy: [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java), con controlli base, normalizzazione dei parametri e logging leggero
 
 ### Tabella Design Pattern
 
@@ -79,7 +79,7 @@ Pattern GoF:
 | Template Method | Definisce uno scheletro comune di esecuzione per i comandi | [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) | Uniforma il flusso dei comandi e delega i passi variabili alle sottoclassi |
 | State | Rappresenta il comportamento in base allo stato del pagamento | [model.Pagamento](src/main/java/model/Pagamento.java), [model/state](src/main/java/model/state) | Elimina controlli sparsi su stringhe stato e rende esplicite le transizioni |
 | Facade | Espone punti unici verso sottosistemi applicativi | [service.AuthFacade](src/main/java/service/AuthFacade.java), [service.DatabaseFacade](src/main/java/service/DatabaseFacade.java) | Semplifica i controller e l'avvio applicativo riducendo la dipendenza da più servizi interni |
-| Proxy | Interpone un livello tra client e repository reale | [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) | Consente di introdurre controlli/logging senza cambiare i client |
+| Proxy | Interpone un livello tra client e repository reale | [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) | Consente di introdurre controlli, normalizzazione e logging senza cambiare i client |
 | Strategy (Polimorfismo) | Decide il flusso di pagamento in base al tipo di conto | [model.conto.Conto](src/main/java/model/conto/Conto.java), [ContoRicaricabile](src/main/java/model/conto/ContoRicaricabile.java), [ContoFisso](src/main/java/model/conto/ContoFisso.java) | Permette logica diversa per ContoFisso (pagamento immediato) vs ContoRicaricabile (saldo disponibile) senza if-else nel controller |
 
 Pattern architetturali/supporto presenti nel progetto:
