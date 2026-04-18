@@ -5,12 +5,11 @@ package model.conto;
  *
  * Logica:
  * - Non ha un saldo prepagato.
- * - Ogni operazione richiede un pagamento immediato.
- * - L'addebita() non sottrae dal saldo (perché non esiste), ma può registrare
- *   un movimento di fatturazione per audit/logging.
+ * - Le spese accumulate pagabili il 30 del mese.
+ * - L'addebita() registra un movimento nel database (il tracking non avviene nello stato dell'oggetto).
  *
  * Esempio: Piano telefonico postpagato.
- * Ogni acquisto di una promozione richiede un pagamento immediato via Card/Cash/Bancomat.
+ * Ogni acquisto di una promozione viene accumulato e pagato in una sola soluzione il 30 di ogni mese.
  */
 public class ContoFisso implements Conto {
 
@@ -22,27 +21,26 @@ public class ContoFisso implements Conto {
     }
 
     /**
-     * Per un conto fisso, OGNI importo richiede un pagamento immediato.
-     * Non c'è saldo da scalare.
+     * Per un conto fisso, le spese si accumulano per il pagamento del 30.
+     * Non richiede pagamento immediato.
      */
     @Override
     public boolean richiedePagamentoImmediato(double importo) {
-        return true;
+        return false;
     }
 
     /**
-     * Operazione non supportata per un conto fisso.
-     * Il pagamento è gestito totalmente via Strategy (Cash, Card, Bancomat).
-     * Questo metodo non dovrebbe essere invocato direttamente per ContoFisso,
-     * ma se lo fosse, lanciamo un'eccezione descrittiva.
+     * Registra un movimento di addebito per il pagamento differito del 30.
+     * Il tracking delle spese avviene nel database tramite i pagamenti.
+     * Questo metodo non modifica lo stato dell'oggetto (che non ha saldo).
      *
-     * @throws UnsupportedOperationException sempre, perché ContoFisso non ha saldo
+     * @param importo importo da registrare
      */
     @Override
     public void addebita(double importo) {
-        throw new UnsupportedOperationException(
-            "ContoFisso non supporta addebiti diretti: il pagamento deve avvenire tramite Strategy (Cash, Card, Bancomat)"
-        );
+        // No-op: il tracking delle spese avviene nel database.
+        // Quando il cliente fisso compra una promo, la spesa è registrata nel DB
+        // e resa disponibile per il pagamento del 30 del mese.
     }
 
     /**
