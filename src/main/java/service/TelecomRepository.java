@@ -13,6 +13,7 @@ import model.Abbonato;
 import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
+import model.TipoPiano;
 import model.Utilizzo;
 import model.conto.Conto;
 import model.conto.ContoFisso;
@@ -57,7 +58,7 @@ public class TelecomRepository {
                     .email(rs.getString("email"))
                     .residenza(rs.getString("residenza"))
                     .numeroTelefono(rs.getString("numero_telefono"))
-                    .pianoTariffario(rs.getString("piano_tariffario"))
+                    .pianoTariffario(toTipoPiano(rs.getString("piano_tariffario")))
                     .build());
             }
             return result;
@@ -97,7 +98,7 @@ public class TelecomRepository {
                     .email(resultSet.getString("email"))
                     .residenza(resultSet.getString("residenza"))
                     .numeroTelefono(resultSet.getString("numero_telefono"))
-                    .pianoTariffario(resultSet.getString("piano_tariffario"))
+                    .pianoTariffario(toTipoPiano(resultSet.getString("piano_tariffario")))
                     .conto(conto)
                     .numeroCarta(resultSet.getString("numero_carta"))
                     .scadenzaCarta(resultSet.getString("scadenza_carta"))
@@ -922,6 +923,10 @@ public class TelecomRepository {
                 return resultSet.next();
             }
         }
+    }
+
+    private TipoPiano toTipoPiano(String value) {
+        return value == null ? null : TipoPiano.from(value);
     }
 
     private Integer getNullableInteger(ResultSet resultSet, String columnName) throws SQLException {

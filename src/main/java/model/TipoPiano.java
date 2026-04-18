@@ -17,6 +17,11 @@ public enum TipoPiano {
         return dbValue;
     }
 
+    @Override
+    public String toString() {
+        return dbValue;
+    }
+
     public static TipoPiano from(String value) {
         if (value == null) {
             throw new IllegalArgumentException("Tipo di abbonato non riconosciuto: null");

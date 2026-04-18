@@ -27,7 +27,7 @@ public class AbbonatoFactory {
             .email(email)
             .residenza(residenza)
             .numeroTelefono(numeroTelefono)
-            .pianoTariffario(TipoPiano.BASE.getDbValue())
+            .pianoTariffario(TipoPiano.BASE)
             .build();
     }
     
@@ -49,7 +49,7 @@ public class AbbonatoFactory {
             .email(email)
             .residenza(residenza)
             .numeroTelefono(numeroTelefono)
-            .pianoTariffario(TipoPiano.PLUS.getDbValue())
+            .pianoTariffario(TipoPiano.PLUS)
             .build();
     }
     

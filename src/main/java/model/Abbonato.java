@@ -9,33 +9,16 @@ public class Abbonato {
     private String email;
     private String residenza;
     private String numeroTelefono;
-    private String pianoTariffario;
+    private TipoPiano pianoTariffario;
     private Conto conto;
     private String numeroCarta;
     private String scadenzaCarta;
     private String cvvCarta;
     private String intestatarioCarta;
 
-    // Costruttore vuoto
-    public Abbonato() {
-        this.conto = new ContoFisso(); // Default: conto fisso (pay-as-you-go)
-    }
-
-    // Costruttore completo
-    public Abbonato(String nome, String cognome, String email, String residenza, 
-                   String numeroTelefono, String pianoTariffario) {
-        this.nome = nome;
-        this.cognome = cognome;
-        this.email = email;
-        this.residenza = residenza;
-        this.numeroTelefono = numeroTelefono;
-        this.pianoTariffario = pianoTariffario;
-        this.conto = new ContoFisso(); // Default: conto fisso
-    }
-
     // Costruttore completo con Conto
-    public Abbonato(String nome, String cognome, String email, String residenza,
-                   String numeroTelefono, String pianoTariffario, Conto conto) {
+    private Abbonato(String nome, String cognome, String email, String residenza,
+                   String numeroTelefono, TipoPiano pianoTariffario, Conto conto) {
         this.nome = nome;
         this.cognome = cognome;
         this.email = email;
@@ -64,8 +47,8 @@ public class Abbonato {
     public String getNumeroTelefono() { return numeroTelefono; }
     public void setNumeroTelefono(String numeroTelefono) { this.numeroTelefono = numeroTelefono; }
 
-    public String getPianoTariffario() { return pianoTariffario; }
-    public void setPianoTariffario(String pianoTariffario) { this.pianoTariffario = pianoTariffario; }
+    public TipoPiano getPianoTariffario() { return pianoTariffario; }
+    public void setPianoTariffario(TipoPiano pianoTariffario) { this.pianoTariffario = pianoTariffario; }
 
     public String getNumeroCarta() { return numeroCarta; }
     public void setNumeroCarta(String numeroCarta) { this.numeroCarta = numeroCarta; }
@@ -100,7 +83,7 @@ public class Abbonato {
         private String email;
         private String residenza;
         private String numeroTelefono;
-        private String pianoTariffario;
+        private TipoPiano pianoTariffario;
         private Conto conto;
         private String numeroCarta;
         private String scadenzaCarta;
@@ -136,7 +119,7 @@ public class Abbonato {
             return this;
         }
 
-        public Builder pianoTariffario(String pianoTariffario) {
+        public Builder pianoTariffario(TipoPiano pianoTariffario) {
             this.pianoTariffario = pianoTariffario;
             return this;
         }
