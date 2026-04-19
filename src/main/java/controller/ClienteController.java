@@ -1,6 +1,8 @@
 package controller;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import controller.command.BancomatPaymentCommand;
 import controller.command.CardPaymentCommand;
@@ -40,6 +42,8 @@ import service.UsageRegistrationService;
 import service.UserSession;
 
 public class ClienteController {
+
+    // Dipendenze applicative: accesso dati, servizi di dominio e utilità UI.
 
     private final TelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
@@ -99,6 +103,7 @@ public class ClienteController {
     private final ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
 
     public void initialize() {
+        // Bootstrap iniziale vista cliente: saluto, tabelle, dettagli e primo caricamento dati.
         String email = UserSession.getInstance().getCurrentEmail();
         if (welcomeLabel != null) {
             welcomeLabel.setText("Ciao!");
@@ -154,10 +159,12 @@ public class ClienteController {
     }
 
     private void caricaPromozioni() {
+        // Carica e sostituisce l'elenco locale usato dalla tabella promozioni.
         promozioni.setAll(dataService.loadPromozioni());
     }
 
     private void caricaStoricoPagamenti() {
+        // Ricarica lo storico dal backend per l'utente in sessione.
         if (storicoPagamentiTable == null) {
             return;
         }
@@ -182,6 +189,7 @@ public class ClienteController {
 
     @FXML
     public void handlePagaDaSaldoDettaglio(ActionEvent event) {
+        // Pagamento da saldo disponibile solo per conto ricaricabile e riga pagabile selezionata.
         String email = UserSession.getInstance().getCurrentEmail();
         Abbonato abbonato = repository.findAbbonatoByEmail(email);
         if (abbonato == null || abbonato.getConto() == null) {
@@ -207,6 +215,7 @@ public class ClienteController {
 
     @FXML
     public void handleEffettuaChiamata(ActionEvent event) {
+        // Validazione input + registrazione consumo voce, poi refresh dello stato UI.
         String numero = numeroField.getText();
         String durata = durataField.getText();
 
@@ -235,6 +244,7 @@ public class ClienteController {
 
     @FXML
     public void handleInviaSms(ActionEvent event) {
+        // Registra un SMS in uscita e aggiorna immediatamente dashboard e campi input.
         String numero = numeroSmsField.getText();
         String testo = testoSmsField.getText();
 
@@ -254,6 +264,7 @@ public class ClienteController {
 
     @FXML
     public void handleUsaDati(ActionEvent event) {
+        // Registra traffico dati (MB), con controlli di formato e valore positivo.
         String dati = datiField.getText();
 
         if (validator.isBlank(dati)) {
@@ -279,6 +290,7 @@ public class ClienteController {
 
     @FXML
     public void handleAderisciPromozione(ActionEvent event) {
+        // Adesione promozione: aggiorna sia la situazione attuale sia lo storico pagamenti.
         Promozione selezionata = promozioniTable.getSelectionModel().getSelectedItem();
         
         if (selezionata == null) {
@@ -299,6 +311,7 @@ public class ClienteController {
 
     @FXML
     public void handleDisdiciPromozione(ActionEvent event) {
+        // Disdetta promozione: mantiene allineate vista principale e storico.
         Promozione selezionata = promozioniTable.getSelectionModel().getSelectedItem();
 
         if (selezionata == null) {
@@ -319,17 +332,20 @@ public class ClienteController {
 
     @FXML
     public void handlePagamentoContanti(ActionEvent event) {
-        gestisciRichiestaPagamento("Contanti", () -> new CashPaymentCommand(this, getTotaleMensileCorrente()).execute());
+        // Avvia il flusso di pagamento con strategia specifica per contanti.
+        gestisciRichiestaPagamento("Contanti", new PagamentoContantiRunnable());
     }
 
     @FXML
     public void handlePagamentoCarta(ActionEvent event) {
-        gestisciRichiestaPagamento("Carta", () -> new CardPaymentCommand(this, getTotaleMensileCorrente()).execute());
+        // Avvia il flusso di pagamento con strategia specifica per carta.
+        gestisciRichiestaPagamento("Carta", new PagamentoCartaRunnable());
     }
 
     @FXML
     public void handlePagamentoBancomat(ActionEvent event) {
-        gestisciRichiestaPagamento("Bancomat", () -> new BancomatPaymentCommand(this, getTotaleMensileCorrente()).execute());
+        // Avvia il flusso di pagamento con strategia specifica per bancomat/POS.
+        gestisciRichiestaPagamento("Bancomat", new PagamentoBancomatRunnable());
     }
 
     /**
@@ -380,6 +396,7 @@ public class ClienteController {
     }
 
     private void gestisciRicaricaConto(String email, ContoRicaricabile contoRicaricabile, String metodoPagamento) {
+        // Flusso ricarica: input importo, eventuale validazione pagamento, update saldo e tentativo saldo storico.
         Double importoRicarica = chiediImportoRicarica(metodoPagamento);
         if (importoRicarica == null) {
             return;
@@ -422,25 +439,19 @@ public class ClienteController {
      * Ritorna true se confermato dall'utente, false se cancellato.
      */
     private boolean mostraDialogoPagamento(String metodoPagamento, double importo) {
-        java.util.concurrent.atomic.AtomicBoolean confermato = new java.util.concurrent.atomic.AtomicBoolean(false);
+        AtomicBoolean confermato = new AtomicBoolean(false);
 
         if ("Carta".equals(metodoPagamento)) {
             paymentDialogFactory.showCardDialog(
                 storicoPagamentiTable.getScene().getWindow(),
                 importo,
-                () -> {
-                    confermato.set(true);
-                    return true;
-                }
+                new ConfermaPagamentoSupplier(confermato)
             );
         } else if ("Bancomat".equals(metodoPagamento)) {
             paymentDialogFactory.showBancomatDialog(
                 storicoPagamentiTable.getScene().getWindow(),
                 importo,
-                () -> {
-                    confermato.set(true);
-                    return true;
-                }
+                new ConfermaPagamentoSupplier(confermato)
             );
         }
 
@@ -448,6 +459,7 @@ public class ClienteController {
     }
 
     private Double chiediImportoRicarica(String metodoPagamento) {
+        // Dialog sincrono: ritorna importo valido, altrimenti null per interrompere il flusso.
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Ricarica conto");
         dialog.setHeaderText("Metodo: " + metodoPagamento);
@@ -472,6 +484,7 @@ public class ClienteController {
     }
 
     private void provaPagamentoStoricoDaSaldo(String email, ContoRicaricabile contoRicaricabile) {
+        // Se dopo la ricarica il saldo basta, salda subito la riga selezionata nello storico.
         Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
         if (selezionato == null || !selezionato.isPagabile()) {
             return;
@@ -509,6 +522,7 @@ public class ClienteController {
 
     @FXML
     public void handleLogout(ActionEvent event) {
+        // Uscita controllata: ritorno al login con gestione errori di navigazione.
         try {
             loginNavigator.navigateToLogin((Node) event.getSource(), authFacade);
         } catch (IOException e) {
@@ -517,6 +531,7 @@ public class ClienteController {
     }
 
     private void aggiornaSituazioneAttuale() {
+        // Sincronizza tutta la dashboard cliente (conto, consumi, residui, promozioni) con i dati correnti.
         String email = UserSession.getInstance().getCurrentEmail();
         if (email == null || email.isBlank()) {
             return;
@@ -654,6 +669,7 @@ public class ClienteController {
     }
 
     private void impostaSituazioneFallback() {
+        // Stato di sicurezza UI quando i dati non sono disponibili o si verifica un errore.
         if (numeroAttualeLabel != null) {
             numeroAttualeLabel.setText("-");
         }
@@ -691,11 +707,13 @@ public class ClienteController {
     }
 
     private double getTotaleMensileCorrente() {
+        // Totale corrente usato dai comandi pagamento (contanti/carta/bancomat).
         String email = UserSession.getInstance().getCurrentEmail();
         return dataService.calcolaTotaleMensile(email);
     }
 
     public void apriSchermataPagamentoContanti(double totale) {
+        // Apertura dialog contanti con callback di conferma pagamento selezionato.
         paymentDialogFactory.showCashDialog(
             welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
             totale,
@@ -704,6 +722,7 @@ public class ClienteController {
     }
 
     public void apriSchermataPagamentoCarta(double totale) {
+        // Apertura dialog carta con callback di conferma pagamento selezionato.
         paymentDialogFactory.showCardDialog(
             welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
             totale,
@@ -712,6 +731,7 @@ public class ClienteController {
     }
 
     public void apriSchermataPagamentoBancomat(double totale) {
+        // Apertura dialog bancomat con callback di conferma pagamento selezionato.
         paymentDialogFactory.showBancomatDialog(
             welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
             totale,
@@ -720,6 +740,7 @@ public class ClienteController {
     }
 
     private boolean confermaPagamentoSelezionato() {
+        // Conferma lato dominio + persistenza DB della riga selezionata nello storico.
         String email = UserSession.getInstance().getCurrentEmail();
         
         Pagamento selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
@@ -734,6 +755,45 @@ public class ClienteController {
 
         caricaStoricoPagamenti();
         return true;
+    }
+
+    // Esegue il comando di pagamento contanti.
+    private class PagamentoContantiRunnable implements Runnable {
+        @Override
+        public void run() {
+            new CashPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
+        }
+    }
+
+    // Esegue il comando di pagamento carta.
+    private class PagamentoCartaRunnable implements Runnable {
+        @Override
+        public void run() {
+            new CardPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
+        }
+    }
+
+    // Esegue il comando di pagamento bancomat.
+    private class PagamentoBancomatRunnable implements Runnable {
+        @Override
+        public void run() {
+            new BancomatPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
+        }
+    }
+
+    // Supplier riusabile: imposta la conferma a true e notifica esito positivo.
+    private static class ConfermaPagamentoSupplier implements Supplier<Boolean> {
+        private final AtomicBoolean confermato;
+
+        private ConfermaPagamentoSupplier(AtomicBoolean confermato) {
+            this.confermato = confermato;
+        }
+
+        @Override
+        public Boolean get() {
+            confermato.set(true);
+            return true;
+        }
     }
 
 }

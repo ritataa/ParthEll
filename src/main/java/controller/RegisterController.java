@@ -2,6 +2,8 @@ package controller;
 
 import java.io.IOException;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -47,22 +49,7 @@ public class RegisterController {
         contoField.setValue("Fisso");
 
         // Mostra/nascondi i campi della carta in base al conto selezionato
-        contoField.valueProperty().addListener((obs, oldVal, newVal) -> {
-            boolean isFisso = "Fisso".equals(newVal);
-            cartaLabel.setVisible(isFisso);
-            numeroCartaField.setVisible(isFisso);
-            scadenzaCartaField.setVisible(isFisso);
-            cvvCartaField.setVisible(isFisso);
-            intestatarioCartaField.setVisible(isFisso);
-
-            if (!isFisso) {
-                // Pulisci i campi se cambi a Ricaricabile
-                numeroCartaField.clear();
-                scadenzaCartaField.clear();
-                cvvCartaField.clear();
-                intestatarioCartaField.clear();
-            }
-        });
+        contoField.valueProperty().addListener(new ContoSelectionListener());
 
         // Inizialmente nascondi se il default è Ricaricabile (anche se il default è Fisso)
         boolean isFisso = "Fisso".equals(contoField.getValue());
@@ -160,5 +147,26 @@ public class RegisterController {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    // Listener nominale per aggiornare visibilita' e contenuto campi carta in base al tipo conto.
+    private class ContoSelectionListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            boolean isFisso = "Fisso".equals(newValue);
+            cartaLabel.setVisible(isFisso);
+            numeroCartaField.setVisible(isFisso);
+            scadenzaCartaField.setVisible(isFisso);
+            cvvCartaField.setVisible(isFisso);
+            intestatarioCartaField.setVisible(isFisso);
+
+            if (!isFisso) {
+                // Se il conto diventa ricaricabile, svuota i dati carta per evitare valori stale.
+                numeroCartaField.clear();
+                scadenzaCartaField.clear();
+                cvvCartaField.clear();
+                intestatarioCartaField.clear();
+            }
+        }
     }
 }

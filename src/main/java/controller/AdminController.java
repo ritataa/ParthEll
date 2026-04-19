@@ -2,6 +2,8 @@ package controller;
 
 import java.io.IOException;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +23,7 @@ import service.TelecomRepository;
 import service.TelecomRepositoryProxy;
 
 public class AdminController {
+    // Dipendenze principali: repository dati e gestione autenticazione/sessione.
     private final TelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
 
@@ -58,12 +61,14 @@ public class AdminController {
         // ...altri campi...
 
         private void caricaAbbonati() {
+            // Carica elenco completo abbonati e lo associa alla tabella amministratore.
             abbonatiCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllAbbonati());
             if (abbonatiTable != null) {
                 abbonatiTable.setItems(abbonatiCompleti);
             }
         }
     public void initialize() {
+        // Inizializzazione vista admin: colonne, dataset iniziali e listener di filtro.
         // Inizializza le colonne della tabella
     if (nomeColumn != null) nomeColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
     if (cognomeColumn != null) cognomeColumn.setCellValueFactory(new PropertyValueFactory<>("cognome"));
@@ -71,7 +76,7 @@ public class AdminController {
     if (pianoColumn != null) pianoColumn.setCellValueFactory(new PropertyValueFactory<>("pianoTariffario"));
         caricaAbbonati();
         if (searchFieldAbbonati != null) {
-            searchFieldAbbonati.textProperty().addListener((obs, oldValue, newValue) -> filtraAbbonatiPerNumero(newValue));
+            searchFieldAbbonati.textProperty().addListener(new FiltroAbbonatiListener());
         }
 
         // Colonne tabStatistiche
@@ -85,7 +90,7 @@ public class AdminController {
     if (promoClienteStat != null) promoClienteStat.setCellValueFactory(new PropertyValueFactory<>("promo"));
         caricaUtilizzo();
         if (searchFieldStatistiche != null) {
-            searchFieldStatistiche.textProperty().addListener((obs, oldValue, newValue) -> filtraStatistichePerNumero(newValue));
+            searchFieldStatistiche.textProperty().addListener(new FiltroStatisticheListener());
         }
 
         // Colonne tabPromo
@@ -94,21 +99,24 @@ public class AdminController {
     if (colDescrizionePromo != null) colDescrizionePromo.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
         caricaPromozioni();
         if (searchFieldPromozioni != null) {
-            searchFieldPromozioni.textProperty().addListener((obs, oldValue, newValue) -> filtraPromozioniPerNome(newValue));
+            searchFieldPromozioni.textProperty().addListener(new FiltroPromozioniListener());
         }
         }
     private void caricaUtilizzo() {
+        // Carica statistiche aggregate di utilizzo dei clienti.
         utilizziCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllUtilizzi());
         if (tabStatistiche != null) tabStatistiche.setItems(utilizziCompleti);
     }
 
     private void caricaPromozioni() {
+        // Carica catalogo promozioni disponibile nell'area amministrativa.
         promozioniComplete = javafx.collections.FXCollections.observableArrayList(repository.findAllPromozioni());
         if (tabPromo != null) tabPromo.setItems(promozioniComplete);
         // fine metodo, NON chiudere la classe qui
     }
 
     private void filtraAbbonatiPerNumero(String filtroNumero) {
+        // Filtro locale per numero telefonico nella tabella abbonati.
         if (abbonatiTable == null) {
             return;
         }
@@ -127,6 +135,7 @@ public class AdminController {
     }
 
     private void filtraPromozioniPerNome(String filtroNome) {
+        // Filtro case-insensitive sul nome promozione.
         if (tabPromo == null) {
             return;
         }
@@ -147,6 +156,7 @@ public class AdminController {
     }
 
     private void filtraStatistichePerNumero(String filtroNumero) {
+        // Filtro statistiche per numero telefonico cliente.
         if (tabStatistiche == null) {
             return;
         }
@@ -168,6 +178,7 @@ public class AdminController {
 
     @FXML
     public void handleAggiungiPromozione(ActionEvent event) {
+        // Inserimento promozione con validazione campi, persistenza e refresh tabelle.
         String nome = nomePromozione == null ? "" : nomePromozione.getText();
         String costo = costoPromozione == null ? "" : costoPromozione.getText();
         String descrizione = descrizionePromozione == null ? "" : descrizionePromozione.getText();
@@ -200,7 +211,7 @@ public class AdminController {
     @FXML
     public void handleLogout(ActionEvent event) {
         try {
-            // Torna alla schermata di login
+            // Torna alla schermata di login e chiude la sessione corrente.
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/login.fxml"));
             Parent root = loader.load();
             authFacade.logout();
@@ -221,5 +232,29 @@ public class AdminController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // Listener testuale per filtrare la tabella abbonati.
+    private class FiltroAbbonatiListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            filtraAbbonatiPerNumero(newValue);
+        }
+    }
+
+    // Listener testuale per filtrare la tabella statistiche.
+    private class FiltroStatisticheListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            filtraStatistichePerNumero(newValue);
+        }
+    }
+
+    // Listener testuale per filtrare la tabella promozioni.
+    private class FiltroPromozioniListener implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+            filtraPromozioniPerNome(newValue);
+        }
     }
 }

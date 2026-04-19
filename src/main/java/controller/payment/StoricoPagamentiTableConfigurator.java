@@ -2,9 +2,11 @@ package controller.payment;
 
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Region;
+import javafx.util.Callback;
 import model.Pagamento;
 import service.UIFormatsService;
 
@@ -13,6 +15,7 @@ import service.UIFormatsService;
  */
 public class StoricoPagamentiTableConfigurator {
 
+    // Servizio centralizzato per formattazione importi e regole visuali.
     private final UIFormatsService formatsService;
 
     public StoricoPagamentiTableConfigurator(UIFormatsService formatsService) {
@@ -38,7 +41,31 @@ public class StoricoPagamentiTableConfigurator {
         }
         if (importoPagamentoColumn != null) {
             importoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("importo"));
-            importoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+            // Factory per colonna importo: formatta il valore in euro.
+            importoPagamentoColumn.setCellFactory(new ImportoCellFactory());
+        }
+        if (promoPagamentoColumn != null) {
+            promoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("promo"));
+            // Factory per colonna promo: abilita wrapping e allineamento a sinistra.
+            promoPagamentoColumn.setCellFactory(new PromoCellFactory());
+        }
+        if (statoPagamentoColumn != null) {
+            statoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("stato"));
+            // Factory per colonna stato: evidenzia in rosso i pagamenti da saldare.
+            statoPagamentoColumn.setCellFactory(new StatoCellFactory());
+        }
+        if (storicoPagamentiTable != null) {
+            storicoPagamentiTable.setFixedCellSize(-1);
+            // Factory righe: adatta altezza e colora l'intera riga se lo stato e' "Da pagare".
+            storicoPagamentiTable.setRowFactory(new StoricoRowFactory());
+        }
+    }
+
+    // Restituisce celle formattate in valuta per la colonna importo.
+    private class ImportoCellFactory implements Callback<TableColumn<Pagamento, Double>, TableCell<Pagamento, Double>> {
+        @Override
+        public TableCell<Pagamento, Double> call(TableColumn<Pagamento, Double> column) {
+            return new TableCell<Pagamento, Double>() {
                 @Override
                 protected void updateItem(Double item, boolean empty) {
                     super.updateItem(item, empty);
@@ -49,11 +76,15 @@ public class StoricoPagamentiTableConfigurator {
                     }
                     setText(formatsService.formatEuro(item));
                 }
-            });
+            };
         }
-        if (promoPagamentoColumn != null) {
-            promoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("promo"));
-            promoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+    }
+
+    // Restituisce celle promo con testo multilinea e formato leggibile.
+    private class PromoCellFactory implements Callback<TableColumn<Pagamento, String>, TableCell<Pagamento, String>> {
+        @Override
+        public TableCell<Pagamento, String> call(TableColumn<Pagamento, String> column) {
+            return new TableCell<Pagamento, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
@@ -67,11 +98,15 @@ public class StoricoPagamentiTableConfigurator {
                     setWrapText(true);
                     setStyle("-fx-alignment: CENTER-LEFT;");
                 }
-            });
+            };
         }
-        if (statoPagamentoColumn != null) {
-            statoPagamentoColumn.setCellValueFactory(new PropertyValueFactory<>("stato"));
-            statoPagamentoColumn.setCellFactory(col -> new TableCell<>() {
+    }
+
+    // Restituisce celle stato con evidenza visiva per i pagamenti non saldati.
+    private class StatoCellFactory implements Callback<TableColumn<Pagamento, String>, TableCell<Pagamento, String>> {
+        @Override
+        public TableCell<Pagamento, String> call(TableColumn<Pagamento, String> column) {
+            return new TableCell<Pagamento, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
@@ -87,11 +122,15 @@ public class StoricoPagamentiTableConfigurator {
                         setStyle("");
                     }
                 }
-            });
+            };
         }
-        if (storicoPagamentiTable != null) {
-            storicoPagamentiTable.setFixedCellSize(-1);
-            storicoPagamentiTable.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
+    }
+
+    // Restituisce righe tabella con altezza dinamica e stile condizionale sullo stato.
+    private class StoricoRowFactory implements Callback<TableView<Pagamento>, TableRow<Pagamento>> {
+        @Override
+        public TableRow<Pagamento> call(TableView<Pagamento> tableView) {
+            return new TableRow<Pagamento>() {
                 @Override
                 protected void updateItem(Pagamento item, boolean empty) {
                     super.updateItem(item, empty);
@@ -107,7 +146,7 @@ public class StoricoPagamentiTableConfigurator {
                         setStyle("");
                     }
                 }
-            });
+            };
         }
     }
 }
