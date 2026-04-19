@@ -301,8 +301,8 @@
  * ├─ src/main/java/model/Abbonato.java
  * │  (aggiunto campo Conto, costruttori, getter/setter, Builder)
  * │
- * └─ src/main/java/controller/ClienteControllerIntegrationExample.java
- *    (frammento di codice per handleAcquistoPromozione())
+ * └─ src/main/java/controller/ClienteController.java
+ *    (integrazione del flusso cliente con logica polimorfica dei conti)
  *
  * ====================================================================
  * 7. COME USARE IN PRATICA
