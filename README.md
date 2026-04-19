@@ -55,7 +55,7 @@ Modalita abbonato:
 Pattern GoF:
 
 * Singleton: [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java), [service.DatabaseConnectionManager](src/main/java/service/DatabaseConnectionManager.java)
-* Factory Method: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
+* Simple Factory: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
 * Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
 * Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java) e contesto [PaymentContext](src/main/java/service/payment/PaymentContext.java)
 * Command (UI): [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
@@ -70,7 +70,7 @@ Pattern GoF:
 | Pattern | Ruolo | Evidenza nel codice | Motivazione |
 | --- | --- | --- | --- |
 | Singleton | Garantisce una sola istanza condivisa per servizi centrali | [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java), [service.DatabaseConnectionManager](src/main/java/service/DatabaseConnectionManager.java) | Evita duplicazioni di stato e semplifica l'accesso globale a autenticazione, sessione e DB |
-| Factory Method | Centralizza la creazione di oggetti Abbonato | [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java) | Riduce accoppiamento tra chiamanti e costruttori concreti |
+| Simple Factory | Centralizza la creazione di oggetti Abbonato | [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java) | Riduce l accoppiamento tra client e dettagli di istanziazione degli oggetti Abbonato centralizzando la creazione in un unico punto. |
 | Builder | Costruisce Abbonato in modo leggibile e sicuro | [model.Abbonato.Builder](src/main/java/model/Abbonato.java) | Utile con oggetti con molti campi, migliora chiarezza e manutenzione |
 | Strategy | Seleziona algoritmo di pagamento a runtime | [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java), [service/payment](src/main/java/service/payment), [service.payment.PaymentContext](src/main/java/service/payment/PaymentContext.java) | Permette di aggiungere nuovi metodi di pagamento senza modificare il codice client |
 | Command (UI) | Incapsula richieste di pagamento in oggetti comando | [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java), [controller/command](src/main/java/controller/command) | Disaccoppia invocazione azione (UI) da esecuzione concreta |
