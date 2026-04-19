@@ -377,10 +377,10 @@ public class ClienteController {
 
         // 1. IL POLIMORFISMO IN AZIONE: Chiediamo al conto se serve la carta di credito/contanti
         if (conto.richiedePagamentoImmediato(importoDaPagare)) {
-            // 2A. Conto Fisso o Ricaricabile senza fondi: Apri l'interfaccia di pagamento
+            // 2A. Solo conto ricaricabile con saldo insufficiente: apri l'interfaccia di pagamento
             apriFinestraPagamentoCommand.run(); 
         } else {
-            // 2B. Conto Ricaricabile con fondi sufficienti: Paga invisibilmente
+            // 2B. Conto fisso (addebito differito) o ricaricabile con fondi: aggiorna direttamente lo stato pagamento
             conto.addebita(importoDaPagare);
             
             // Dato che ha pagato internamente col saldo, aggiorniamo subito il DB
