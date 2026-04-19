@@ -97,7 +97,7 @@ Pattern architetturali/supporto presenti nel progetto:
 
 Per comprendere la logica polimorfica dei conti e l'integrazione con gli altri pattern, consultare:
 * [ARCHITETTURA_CONTI_POLIMORFICI.java](ARCHITETTURA_CONTI_POLIMORFICI.java) - Spiegazione completa (360 righe) dell'architettura
-* [src/main/java/controller/ClienteControllerIntegrationExample.java](src/main/java/controller/ClienteControllerIntegrationExample.java) - Frammento di codice con esempi di integrazione
+* [src/main/java/controller/ClienteController.java](src/main/java/controller/ClienteController.java) - Implementazione reale del flusso cliente con integrazione dei pattern
 
 ### Migliorie SOLID applicate (SRP)
 
