@@ -20,7 +20,7 @@
  *
  * + addebita(double importo): void
  *   → Scala l'importo dal saldo interno
- *   → ContoFisso: lancia UnsupportedOperationException
+ *   → ContoFisso: registra/accumula importi per saldo mensile (nessun saldo interno)
  *
  * + getSaldo(): double
  *   → Restituisce il saldo disponibile
@@ -75,12 +75,12 @@
  * Logica:
  * ───────
  * • richiedePagamentoImmediato(importo):
- *   - return true; // SEMPRE
- *   - Ogni acquisto richiede pagamento immediato
+ *   - return false; // differito
+ *   - Le spese vengono accumulate nel pagamento del mese corrente
  *
  * • addebita(importo):
- *   - throw UnsupportedOperationException
- *   - Il pagamento deve avvenire tramite Strategy, non qui
+ *   - Nessun addebito su saldo locale (conto senza credito prepagato)
+ *   - L'importo confluisce nel totale mensile da pagare (stato "Da pagare")
  *
  * • getSaldo():
  *   - return 0.0; // Nessun saldo prepagato
@@ -88,10 +88,9 @@
  * Esempio di flusso:
  * ──────────────────
  * Promozione costa 15€
- * → richiedePagamentoImmediato(15) → true (sempre)
- * → Apri dialog pagamento obbligatorio
- * → Utente sceglie: [Contanti] [Carta] [Bancomat]
- * → Invoca Command corrispondente e Strategy di pagamento
+ * → richiedePagamentoImmediato(15) → false
+ * → Aggiorna pagamento del mese corrente (stato: "Da pagare")
+ * → Addebito automatico a fine mese (giorno 30)
  *
  * ====================================================================
  * 2. INTEGRAZIONE IN ABBONATO
@@ -152,7 +151,7 @@
  *             showAlert("Saldo insufficiente: " + e.getMessage());
  *         }
  *     } else {
- *         // RAMO B: Pagamento immediato richiesto
+ *         // RAMO B: Saldo insufficiente (solo conto ricaricabile)
  *         showPaymentDialog(promo);
  *         // Invoca Command (Cash/Card/Bancomat)
  *         // Che esegue la Strategy di pagamento
@@ -189,12 +188,11 @@
  * • Abbonato: ContoFisso
  * • Azione: Acquista promozione (15€)
  * • Flusso:
- *   1. conto.richiedePagamentoImmediato(15) → true (sempre)
- *   2. showPaymentDialog(promo)
- *   3. Utente seleziona: [Contanti]
- *   4. Esegui: new CashPaymentCommand(this, 15).execute()
- *   5. Strategy: CashPaymentStrategy.pay(15)
- *   6. Alert: "Pagamento in contanti registrato!"
+ *   1. conto.richiedePagamentoImmediato(15) → false
+ *   2. Nessun dialog di pagamento immediato
+ *   3. Il costo viene incluso nel totale del mese corrente
+ *   4. Stato pagamento: "Da pagare"
+ *   5. Saldo automatico a fine mese (giorno 30)
  *
  * ====================================================================
  * 4. PATTERN INTEGRATION (Come lavora insieme)
@@ -234,12 +232,13 @@
  *     [Polimorfismo] Chiama conto.richiedePagamentoImmediato()
  *          ↓
  *     ┌────────────────────────────────────┐
- *     │ false (saldo sufficiente)           │ true (pagamento richiesto)
- *     │ ContoRicaricabile OK                │ ContoFisso o saldo insufficiente
+ *     │ false (saldo sufficiente o conto fisso) │ true (pagamento richiesto)
+ *     │ ContoRicaricabile OK o ContoFisso       │ Solo saldo insufficiente (ricaricabile)
  *     ↓                                     ↓
  *  conto.addebita()              showPaymentDialog()
- *  Alert di successo                   ↓
- *  Update saldo DB          [Command Pattern] Utente sceglie metodo
+ *  (ricaricabile: scala saldo;         ↓
+ *   fisso: aggiorna mensile)   [Command Pattern] Utente sceglie metodo
+ *  Update DB                            ↓
  *                                   ↓
  *                           CashPaymentCommand.execute()
  *                                   ↓
@@ -337,10 +336,10 @@
  *
  * // Decisione di flusso basata sul polimorfismo
  * if (!conto.richiedePagamentoImmediato(15.0)) {
- *     // ContoRicaricabile con saldo ≥ 15€
+ *     // ContoRicaricabile con saldo ≥ 15€ oppure ContoFisso (differito)
  *     conto.addebita(15.0);
  * } else {
- *     // ContoFisso o saldo insufficiente
+ *     // Solo saldo insufficiente (conto ricaricabile)
  *     // → Apri dialog pagamento
  * }
  *
