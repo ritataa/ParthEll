@@ -2,7 +2,7 @@ package model;
 
 /**
  * Factory per la creazione di diversi tipi di abbonati.
- * Implementa il pattern Factory Method per creare istanze di Abbonato
+ * Implementa il pattern Factory Simple per creare istanze di Abbonato
  * con configurazioni predefinite basate sul tipo di piano tariffario.
  * 
  * @author ParthEll Team
