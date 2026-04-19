@@ -48,7 +48,7 @@ Modalita abbonato:
 * chiamate, sms, traffico dati
 * adesione promozioni
 * pagamento con contanti, carta, bancomat
-* storico pagamenti mensili con stato
+* storico pagamenti mensili con stato (conto fisso con addebito a fine mese)
 
 ## Design pattern usati
 
@@ -58,7 +58,6 @@ Pattern GoF:
 * Factory Method: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
 * Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
 * Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java) e contesto [PaymentContext](src/main/java/service/payment/PaymentContext.java)
-* Strategy (Polimorfismo Conti): [model.conto.Conto](src/main/java/model/conto/Conto.java) con [ContoRicaricabile](src/main/java/model/conto/ContoRicaricabile.java) e [ContoFisso](src/main/java/model/conto/ContoFisso.java), utilizzato in [controller.ClienteController](src/main/java/controller/ClienteController.java#L335)
 * Command (UI): [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
 * Command (DB): [service.command.DatabaseCommand](src/main/java/service/command/DatabaseCommand.java) con i command concreti in [src/main/java/service/command](src/main/java/service/command)
 * Template Method: [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) con algoritmo `execute()` e passi demandati ai command concreti
@@ -80,7 +79,15 @@ Pattern GoF:
 | State | Rappresenta il comportamento in base allo stato del pagamento | [model.Pagamento](src/main/java/model/Pagamento.java), [model/state](src/main/java/model/state) | Elimina controlli sparsi su stringhe stato e rende esplicite le transizioni |
 | Facade | Espone punti unici verso sottosistemi applicativi | [service.AuthFacade](src/main/java/service/AuthFacade.java), [service.DatabaseFacade](src/main/java/service/DatabaseFacade.java) | Semplifica i controller e l'avvio applicativo riducendo la dipendenza da più servizi interni |
 | Proxy | Interpone un livello tra client e repository reale | [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) | Consente di introdurre controlli, normalizzazione e logging senza cambiare i client |
-| Strategy (Polimorfismo) | Decide il flusso di pagamento in base al tipo di conto | [model.conto.Conto](src/main/java/model/conto/Conto.java), [ContoRicaricabile](src/main/java/model/conto/ContoRicaricabile.java), [ContoFisso](src/main/java/model/conto/ContoFisso.java) | Permette logica diversa per ContoFisso (pagamento immediato) vs ContoRicaricabile (saldo disponibile) senza if-else nel controller |
+
+### Polimorfismo
+
+Il comportamento dei conti e gestito tramite polimorfismo su interfaccia `Conto`.
+
+* [model/conto](src/main/java/model/conto)
+* [model.conto.Conto](src/main/java/model/conto/Conto.java)
+* [model.conto.ContoRicaricabile](src/main/java/model/conto/ContoRicaricabile.java)
+* [model.conto.ContoFisso](src/main/java/model/conto/ContoFisso.java)
 
 Pattern architetturali/supporto presenti nel progetto:
 * Repository: [service.TelecomRepository](src/main/java/service/TelecomRepository.java)
