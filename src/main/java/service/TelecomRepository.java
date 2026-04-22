@@ -618,10 +618,11 @@ public class TelecomRepository {
             }
 
             String promoSnapshot = getPromozioniAttiveString(email);
-            insertPagamento(insertStatement, email, "Gennaio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
-            insertPagamento(insertStatement, email, "Febbraio", 2026, 24.99, "Pagamento confermato", promoSnapshot);
-            insertPagamento(insertStatement, email, "Marzo", 2026, 24.99, "Pagamento confermato", promoSnapshot);
-            insertPagamento(insertStatement, email, "Aprile", 2026, 24.99, "Da pagare", promoSnapshot);
+            int meseCorrente = java.time.LocalDate.now().getMonthValue();
+            int annoCorrente = java.time.LocalDate.now().getYear();
+            String meseItaliano = getMeseItaliano(meseCorrente);
+
+            insertPagamento(insertStatement, email, meseItaliano, annoCorrente, 24.99, "Da pagare", promoSnapshot);
         } catch (SQLException exception) {
             throw new RuntimeException("Errore inizializzazione storico pagamenti", exception);
         }
