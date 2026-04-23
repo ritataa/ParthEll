@@ -7,7 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import service.AuthFacade;
+import patterns.facade.AuthFacade;
 
 /**
  * Gestisce la navigazione verso la schermata di login.

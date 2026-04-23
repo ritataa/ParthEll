@@ -54,31 +54,31 @@ Modalita abbonato:
 
 Pattern GoF:
 
-* Singleton: [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java), [service.DatabaseConnectionManager](src/main/java/service/DatabaseConnectionManager.java)
-* Simple Factory: [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java)
+* Singleton: [patterns.singleton.AuthenticationService](src/main/java/patterns/singleton/AuthenticationService.java), [patterns.singleton.UserSession](src/main/java/patterns/singleton/UserSession.java), [patterns.singleton.DatabaseManager](src/main/java/patterns/singleton/DatabaseManager.java), [patterns.singleton.DatabaseConnectionManager](src/main/java/patterns/singleton/DatabaseConnectionManager.java)
+* Simple Factory: [patterns.factory.AbbonatoFactory](src/main/java/patterns/factory/AbbonatoFactory.java)
 * Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
-* Strategy: [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/service/payment/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/service/payment/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/service/payment/BancomatPaymentStrategy.java) e contesto [PaymentContext](src/main/java/service/payment/PaymentContext.java)
-* Command (UI): [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/controller/command](src/main/java/controller/command)
-* Command (DB): [service.command.DatabaseCommand](src/main/java/service/command/DatabaseCommand.java) con i command concreti in [src/main/java/service/command](src/main/java/service/command)
-* Template Method: [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) con algoritmo `execute()` e passi demandati ai command concreti
-* State: [model.Pagamento](src/main/java/model/Pagamento.java) con stati in [src/main/java/model/state](src/main/java/model/state)
-* Facade: [service.AuthFacade](src/main/java/service/AuthFacade.java), [service.DatabaseFacade](src/main/java/service/DatabaseFacade.java)
-* Proxy: [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java), con controlli base, normalizzazione dei parametri e logging leggero
+* Strategy: [patterns.strategy.PaymentStrategy](src/main/java/patterns/strategy/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/patterns/strategy/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/patterns/strategy/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/patterns/strategy/BancomatPaymentStrategy.java) e contesto [PaymentContext](src/main/java/patterns/strategy/PaymentContext.java)
+* Command (UI): [patterns.command.ui.PaymentCommand](src/main/java/patterns/command/ui/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/patterns/command/ui](src/main/java/patterns/command/ui)
+* Command (DB): [patterns.command.db.DatabaseCommand](src/main/java/patterns/command/db/DatabaseCommand.java) con i command concreti in [src/main/java/patterns/command/db](src/main/java/patterns/command/db)
+* Template Method: [patterns.command.ui.AbstractPaymentCommand](src/main/java/patterns/command/ui/AbstractPaymentCommand.java) con algoritmo `execute()` e passi demandati ai command concreti
+* State: [patterns.state.Pagamento](src/main/java/patterns/state/Pagamento.java) con stati in [src/main/java/patterns/state/impl](src/main/java/patterns/state/impl)
+* Facade: [patterns.facade.AuthFacade](src/main/java/patterns/facade/AuthFacade.java), [patterns.facade.DatabaseFacade](src/main/java/patterns/facade/DatabaseFacade.java)
+* Proxy: [patterns.proxy.TelecomRepositoryProxy](src/main/java/patterns/proxy/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java), con controlli base, normalizzazione dei parametri e logging leggero
 
 ### Tabella Design Pattern
 
 | Pattern | Ruolo | Evidenza nel codice | Motivazione |
 | --- | --- | --- | --- |
-| Singleton | Garantisce una sola istanza condivisa per servizi centrali | [service.AuthenticationService](src/main/java/service/AuthenticationService.java), [service.UserSession](src/main/java/service/UserSession.java), [service.DatabaseManager](src/main/java/service/DatabaseManager.java), [service.DatabaseConnectionManager](src/main/java/service/DatabaseConnectionManager.java) | Evita duplicazioni di stato e semplifica l'accesso globale a autenticazione, sessione e DB |
-| Simple Factory | Centralizza la creazione di oggetti Abbonato | [model.AbbonatoFactory](src/main/java/model/AbbonatoFactory.java) | Riduce l accoppiamento tra client e dettagli di istanziazione degli oggetti Abbonato centralizzando la creazione in un unico punto. |
+| Singleton | Garantisce una sola istanza condivisa per servizi centrali | [patterns.singleton.AuthenticationService](src/main/java/patterns/singleton/AuthenticationService.java), [patterns.singleton.UserSession](src/main/java/patterns/singleton/UserSession.java), [patterns.singleton.DatabaseManager](src/main/java/patterns/singleton/DatabaseManager.java), [patterns.singleton.DatabaseConnectionManager](src/main/java/patterns/singleton/DatabaseConnectionManager.java) | Evita duplicazioni di stato e semplifica l'accesso globale a autenticazione, sessione e DB |
+| Simple Factory | Centralizza la creazione di oggetti Abbonato | [patterns.factory.AbbonatoFactory](src/main/java/patterns/factory/AbbonatoFactory.java) | Riduce l accoppiamento tra client e dettagli di istanziazione degli oggetti Abbonato centralizzando la creazione in un unico punto. |
 | Builder | Costruisce Abbonato in modo leggibile e sicuro | [model.Abbonato.Builder](src/main/java/model/Abbonato.java) | Utile con oggetti con molti campi, migliora chiarezza e manutenzione |
-| Strategy | Seleziona algoritmo di pagamento a runtime | [service.payment.PaymentStrategy](src/main/java/service/payment/PaymentStrategy.java), [service/payment](src/main/java/service/payment), [service.payment.PaymentContext](src/main/java/service/payment/PaymentContext.java) | Permette di aggiungere nuovi metodi di pagamento senza modificare il codice client |
-| Command (UI) | Incapsula richieste di pagamento in oggetti comando | [controller.command.PaymentCommand](src/main/java/controller/command/PaymentCommand.java), [controller/command](src/main/java/controller/command) | Disaccoppia invocazione azione (UI) da esecuzione concreta |
-| Command (DB) | Incapsula operazioni JDBC in comandi eseguibili su connessione | [service.command.DatabaseCommand](src/main/java/service/command/DatabaseCommand.java), [service/command](src/main/java/service/command) | Riduce duplicazione nelle operazioni DB e separa la logica SQL dall'orchestrazione |
-| Template Method | Definisce uno scheletro comune di esecuzione per i comandi | [controller.command.AbstractPaymentCommand](src/main/java/controller/command/AbstractPaymentCommand.java) | Uniforma il flusso dei comandi e delega i passi variabili alle sottoclassi |
-| State | Rappresenta il comportamento in base allo stato del pagamento | [model.Pagamento](src/main/java/model/Pagamento.java), [model/state](src/main/java/model/state) | Elimina controlli sparsi su stringhe stato e rende esplicite le transizioni |
-| Facade | Espone punti unici verso sottosistemi applicativi | [service.AuthFacade](src/main/java/service/AuthFacade.java), [service.DatabaseFacade](src/main/java/service/DatabaseFacade.java) | Semplifica i controller e l'avvio applicativo riducendo la dipendenza da più servizi interni |
-| Proxy | Interpone un livello tra client e repository reale | [service.TelecomRepositoryProxy](src/main/java/service/TelecomRepositoryProxy.java) | Consente di introdurre controlli, normalizzazione e logging senza cambiare i client |
+| Strategy | Seleziona algoritmo di pagamento a runtime | [patterns.strategy.PaymentStrategy](src/main/java/patterns/strategy/PaymentStrategy.java), [patterns/strategy](src/main/java/patterns/strategy), [patterns.strategy.PaymentContext](src/main/java/patterns/strategy/PaymentContext.java) | Permette di aggiungere nuovi metodi di pagamento senza modificare il codice client |
+| Command (UI) | Incapsula richieste di pagamento in oggetti comando | [patterns.command.ui.PaymentCommand](src/main/java/patterns/command/ui/PaymentCommand.java), [patterns/command/ui](src/main/java/patterns/command/ui) | Disaccoppia invocazione azione (UI) da esecuzione concreta |
+| Command (DB) | Incapsula operazioni JDBC in comandi eseguibili su connessione | [patterns.command.db.DatabaseCommand](src/main/java/patterns/command/db/DatabaseCommand.java), [patterns/command/db](src/main/java/patterns/command/db) | Riduce duplicazione nelle operazioni DB e separa la logica SQL dall'orchestrazione |
+| Template Method | Definisce uno scheletro comune di esecuzione per i comandi | [patterns.command.ui.AbstractPaymentCommand](src/main/java/patterns/command/ui/AbstractPaymentCommand.java) | Uniforma il flusso dei comandi e delega i passi variabili alle sottoclassi |
+| State | Rappresenta il comportamento in base allo stato del pagamento | [patterns.state.Pagamento](src/main/java/patterns/state/Pagamento.java), [patterns/state/impl](src/main/java/patterns/state/impl) | Elimina controlli sparsi su stringhe stato e rende esplicite le transizioni |
+| Facade | Espone punti unici verso sottosistemi applicativi | [patterns.facade.AuthFacade](src/main/java/patterns/facade/AuthFacade.java), [patterns.facade.DatabaseFacade](src/main/java/patterns/facade/DatabaseFacade.java) | Semplifica i controller e l'avvio applicativo riducendo la dipendenza da più servizi interni |
+| Proxy | Interpone un livello tra client e repository reale | [patterns.proxy.TelecomRepositoryProxy](src/main/java/patterns/proxy/TelecomRepositoryProxy.java) | Consente di introdurre controlli, normalizzazione e logging senza cambiare i client |
 
 ### Polimorfismo
 
@@ -128,9 +128,9 @@ L'applicazione usa JDBC con database relazionale locale SQLite.
 - Driver: `org.xerial:sqlite-jdbc`
 - File database: `parth.db` (creato automaticamente alla prima esecuzione)
 - Tabelle principali: `abbonato`, `piano_tariffario`, `promozione`, `abbonato_promozione`, `utilizzo`, `pagamenti`
-- Inizializzazione schema e seed dati: [src/main/java/service/DatabaseManager.java](src/main/java/service/DatabaseManager.java)
+- Inizializzazione schema e seed dati: [src/main/java/patterns/singleton/DatabaseManager.java](src/main/java/patterns/singleton/DatabaseManager.java)
 - Accesso ai dati applicativi: [src/main/java/service/TelecomRepository.java](src/main/java/service/TelecomRepository.java)
-- Modello storico pagamenti: [src/main/java/model/Pagamento.java](src/main/java/model/Pagamento.java)
+- Modello storico pagamenti: [src/main/java/patterns/state/Pagamento.java](src/main/java/patterns/state/Pagamento.java)
 
 ## Interfacce principali
 

@@ -5,14 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import service.command.FindPromozioniAttiveCommand;
-import service.command.InsertAbbonatoCommand;
-import service.command.InsertAbbonatoPromozioneCommand;
-import service.command.InsertAmministratoreCommand;
-import service.command.InsertPagamentoCommand;
-import service.command.InsertPianoTariffarioCommand;
-import service.command.InsertPromozioneCommand;
-import service.command.InsertUtilizzoCommand;
+import patterns.command.db.FindPromozioniAttiveCommand;
+import patterns.command.db.InsertAbbonatoCommand;
+import patterns.command.db.InsertAbbonatoPromozioneCommand;
+import patterns.command.db.InsertAmministratoreCommand;
+import patterns.command.db.InsertPagamentoCommand;
+import patterns.command.db.InsertPianoTariffarioCommand;
+import patterns.command.db.InsertPromozioneCommand;
+import patterns.command.db.InsertUtilizzoCommand;
 
 /**
  * Gestisce il popolamento iniziale dei dati e i relativi controlli.

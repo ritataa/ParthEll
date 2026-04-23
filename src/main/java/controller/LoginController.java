@@ -13,7 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import service.AuthFacade;
+import patterns.facade.AuthFacade;
 
 /**
  * Controller per la gestione dell'interfaccia di login dell'applicazione ParthEll.

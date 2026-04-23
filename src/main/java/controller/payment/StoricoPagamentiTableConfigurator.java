@@ -7,7 +7,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Region;
 import javafx.util.Callback;
-import model.Pagamento;
+import patterns.state.Pagamento;
 import service.UIFormatsService;
 
 /**

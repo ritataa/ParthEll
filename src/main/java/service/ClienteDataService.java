@@ -4,7 +4,7 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import model.Pagamento;
+import patterns.state.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;

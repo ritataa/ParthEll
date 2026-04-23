@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-import controller.command.BancomatPaymentCommand;
-import controller.command.CardPaymentCommand;
-import controller.command.CashPaymentCommand;
+import patterns.command.ui.BancomatPaymentCommand;
+import patterns.command.ui.CardPaymentCommand;
+import patterns.command.ui.CashPaymentCommand;
 import controller.payment.PaymentDialogFactory;
 import controller.payment.StoricoPagamentiTableConfigurator;
 import javafx.collections.FXCollections;
@@ -23,23 +23,23 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import model.Abbonato;
-import model.Pagamento;
+import patterns.state.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
 import model.conto.ContoFisso;
 import model.conto.ContoRicaricabile;
 import service.AlertManager;
-import service.AuthFacade;
+import patterns.facade.AuthFacade;
 import service.ClienteDataService;
 import service.FormInputValidator;
 import service.OperationResult;
 import service.PromotionService;
 import service.TelecomRepository;
-import service.TelecomRepositoryProxy;
+import patterns.proxy.TelecomRepositoryProxy;
 import service.UIFormatsService;
 import service.UsageRegistrationService;
-import service.UserSession;
+import patterns.singleton.UserSession;
 
 public class ClienteController {
 

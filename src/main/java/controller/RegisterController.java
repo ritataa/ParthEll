@@ -18,7 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import service.FormInputValidator;
 import service.TelecomRepository;
-import service.TelecomRepositoryProxy;
+import patterns.proxy.TelecomRepositoryProxy;
 
 public class RegisterController {
 

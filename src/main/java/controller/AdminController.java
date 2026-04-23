@@ -18,9 +18,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import model.Abbonato;
-import service.AuthFacade;
+import patterns.facade.AuthFacade;
 import service.TelecomRepository;
-import service.TelecomRepositoryProxy;
+import patterns.proxy.TelecomRepositoryProxy;
 
 public class AdminController {
     // Dipendenze principali: repository dati e gestione autenticazione/sessione.

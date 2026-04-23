@@ -10,7 +10,6 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import model.Abbonato;
-import model.Pagamento;
 import model.PianoTariffario;
 import model.Promozione;
 import model.TipoPiano;
@@ -18,6 +17,8 @@ import model.Utilizzo;
 import model.conto.Conto;
 import model.conto.ContoFisso;
 import model.conto.ContoRicaricabile;
+import patterns.singleton.DatabaseManager;
+import patterns.state.Pagamento;
 
 /**
  * Repository JDBC per accesso ai dati applicativi.

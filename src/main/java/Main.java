@@ -5,7 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import service.DatabaseFacade;
+import patterns.facade.DatabaseFacade;
 
 public class Main extends Application {
     @Override
