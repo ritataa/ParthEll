@@ -22,6 +22,11 @@ import patterns.singleton.UserSession;
  */
 public class AuthFacade {
 
+    // Notiamo come non c'è la parola 'new'. Usiamo getInstance() per ottenere l'istanza singleton di AuthenticationService e UserSession.
+    // Quelle righe servono alla Facciata per agganciarsi alle istanze globali uniche (Singleton) dei servizi di autenticazione e di sessione. 
+    // Le dichiariamo private per nascondere la complessità al resto dell'applicazione (rispettando il pattern Facade) e final per garantire che i collegamenti 
+    // ai servizi non vengano mai sovrascritti o persi per errore durante l'esecuzione.
+    
     private final AuthenticationService authenticationService = AuthenticationService.getInstance(); // Privato: lo usa solo questa classe per controllare il login
     private final UserSession userSession = UserSession.getInstance(); // Privato: tiene la sessione interna, senza accesso diretto da fuori
 

@@ -20,13 +20,35 @@ import patterns.builder.Abbonato;
 import patterns.singleton.DatabaseManager;
 import patterns.state.Pagamento;
 
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: tracciano paternità e manutenzione della classe.
+ * @param: definisce i vincoli e il significato degli input.
+ * @return: definisce l'output garantito o nullo per il chiamante.
+ * @throws: esplicita le eccezioni gestibili dal chiamante.
+ */
+
 /**
- * Repository JDBC per accesso ai dati applicativi.
+ * Repository JDBC per leggere e aggiornare anagrafica, promozioni, utilizzi e pagamenti.
+ * Centralizza l'accesso ai dati e riduce il coupling tra controller e database.
+ * Usa il pattern Repository per isolare le query SQL dalla logica applicativa.
+ *
+ * @author ParthEll Team
+ * @version 1.0
  */
 public class TelecomRepository {
 
     private final DatabaseManager databaseManager = DatabaseManager.getInstance();
 
+    /**
+     * Verifica se l'utente esiste come amministratore o come cliente.
+     * Restituisce il ruolo trovato oppure null se le credenziali non sono valide.
+     *
+     * @param email email non vuota dell'utente da autenticare.
+     * @param password password associata all'account.
+     * @return "admin", "cliente" o null se nessuna corrispondenza è valida.
+     * @throws RuntimeException se l'accesso al database fallisce.
+     */
     public String authenticate(String email, String password) {
         String adminSql = "SELECT 1 FROM amministratore WHERE email = ? AND password = ?";
         if (exists(adminSql, email, password)) {
@@ -41,6 +63,12 @@ public class TelecomRepository {
         return null;
     }
 
+    /**
+     * Carica tutti gli abbonati ordinati per cognome e nome.
+     *
+     * @return lista completa degli abbonati presenti a database.
+     * @throws RuntimeException se la lettura JDBC fallisce.
+     */
     public List<Abbonato> findAllAbbonati() {
         List<Abbonato> result = new ArrayList<>();
         String sql = """
@@ -68,6 +96,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Cerca un abbonato tramite email e ricostruisce anche il conto associato.
+     * Restituisce null quando l'email non esiste o è vuota.
+     *
+     * @param email email non vuota da cercare.
+     * @return l'abbonato trovato oppure null se assente.
+     * @throws RuntimeException se il database non risponde correttamente.
+     */
     public Abbonato findAbbonatoByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -87,6 +123,7 @@ public class TelecomRepository {
                     return null;
                 }
 
+                // Ripristina il tipo di conto leggendo il valore salvato nel record.
                 String contoDbValue = resultSet.getString("conto");
                 double saldo = resultSet.getDouble("saldo");
                 Conto conto = "ricaricabile".equalsIgnoreCase(contoDbValue)
@@ -112,6 +149,12 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Restituisce tutti gli utilizzi con il riepilogo delle promozioni attive.
+     *
+     * @return lista di utilizzi ordinata per numero telefonico.
+     * @throws RuntimeException se la query di aggregazione fallisce.
+     */
     public List<Utilizzo> findAllUtilizzi() {
         List<Utilizzo> result = new ArrayList<>();
         String sql = """
@@ -134,6 +177,7 @@ public class TelecomRepository {
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet rs = statement.executeQuery()) {
             while (rs.next()) {
+                // Unisco i dati aggregati in un DTO pronto per la UI.
                 result.add(new Utilizzo(
                     rs.getString("numero"),
                     rs.getString("nome"),
@@ -151,6 +195,12 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Restituisce tutte le promozioni presenti nel catalogo.
+     *
+     * @return lista completa delle promozioni disponibili.
+     * @throws RuntimeException se la lettura del catalogo fallisce.
+     */
     public List<Promozione> findAllPromozioni() {
         List<Promozione> result = new ArrayList<>();
         String sql = "SELECT nome, costo, descrizione FROM promozione ORDER BY nome";
@@ -171,6 +221,12 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Restituisce i nomi di tutti i piani tariffari ordinati alfabeticamente.
+     *
+     * @return lista dei nomi piano usabili dall'interfaccia.
+     * @throws RuntimeException se la query fallisce.
+     */
     public List<String> findAllPianiTariffari() {
         List<String> result = new ArrayList<>();
         String sql = "SELECT nome FROM piano_tariffario ORDER BY nome";
@@ -187,6 +243,15 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Crea un nuovo cliente con valori base e numero telefonico generato.
+     *
+     * @param email email univoca del cliente.
+     * @param password password da salvare per l'accesso.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @throws RuntimeException se l'inserimento o la sincronizzazione falliscono.
+     */
     public void addCliente(String email, String password, String nome, String cognome) {
         String sql = """
             INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
@@ -195,6 +260,7 @@ public class TelecomRepository {
 
         try (Connection connection = databaseManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+            // Genero un numero progressivo semplice per il nuovo cliente.
             String numeroTelefono = generateNumeroTelefono(connection);
             statement.setString(1, email);
             statement.setString(2, password);
@@ -212,6 +278,24 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Registra un cliente completo verificando unicità di email e telefono.
+     * Restituisce solo una eccezione RuntimeException in caso di dati non validi o errori DB.
+     *
+     * @param email email non già presente.
+     * @param password password dell'account.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @param residenza indirizzo non vuoto.
+     * @param numeroTelefono numero telefonico non già presente.
+     * @param pianoTariffario piano tariffario esistente.
+     * @param conto tipo conto valido.
+     * @param numeroCarta numero carta opzionale.
+     * @param scadenzaCarta scadenza carta opzionale.
+     * @param cvvCarta cvv carta opzionale.
+     * @param intestatarioCarta intestatario carta opzionale.
+     * @throws RuntimeException se un vincolo viene violato o il database fallisce.
+     */
     public void registerCliente(
         String email,
         String password,
@@ -226,12 +310,12 @@ public class TelecomRepository {
         String cvvCarta,
         String intestatarioCarta
     ) {
-        // Controllo preliminare: email e numero non devono esistere
+        // Controllo preliminare: evito duplicati prima dell'INSERT.
         String checkEmailSql = "SELECT 1 FROM abbonato WHERE email = ?";
         String checkNumeroSql = "SELECT 1 FROM abbonato WHERE numero_telefono = ?";
 
         try (Connection connection = databaseManager.getConnection()) {
-            // Verifico email
+            // Verifico subito se l'email è già occupata.
             try (PreparedStatement checkEmail = connection.prepareStatement(checkEmailSql)) {
                 checkEmail.setString(1, email.trim());
                 try (ResultSet rs = checkEmail.executeQuery()) {
@@ -241,7 +325,7 @@ public class TelecomRepository {
                 }
             }
 
-            // Verifico numero
+            // Verifico anche il numero di telefono per mantenere la chiave logica unica.
             try (PreparedStatement checkNumero = connection.prepareStatement(checkNumeroSql)) {
                 checkNumero.setString(1, numeroTelefono.trim());
                 try (ResultSet rs = checkNumero.executeQuery()) {
@@ -251,7 +335,7 @@ public class TelecomRepository {
                 }
             }
 
-            // Se passa i controlli, eseguo l'INSERT
+            // Solo dopo i controlli eseguo l'inserimento definitivo.
             String sql = """
                 INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -285,6 +369,19 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Variante compatta della registrazione con dati opzionali assenti.
+     *
+     * @param email email non già presente.
+     * @param password password dell'account.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @param residenza indirizzo non vuoto.
+     * @param numeroTelefono numero telefonico non già presente.
+     * @param pianoTariffario piano tariffario esistente.
+     * @param conto tipo conto valido.
+     * @throws RuntimeException se i controlli di registrazione falliscono.
+     */
     public void registerCliente(
         String email,
         String password,
@@ -298,6 +395,18 @@ public class TelecomRepository {
         registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto, null, null, null, null);
     }
 
+    /**
+     * Variante minima della registrazione che usa il conto fisso di default.
+     *
+     * @param email email non già presente.
+     * @param password password dell'account.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @param residenza indirizzo non vuoto.
+     * @param numeroTelefono numero telefonico non già presente.
+     * @param pianoTariffario piano tariffario esistente.
+     * @throws RuntimeException se i controlli di registrazione falliscono.
+     */
     public void registerCliente(
         String email,
         String password,
@@ -310,6 +419,14 @@ public class TelecomRepository {
         registerCliente(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, "Fisso");
     }
 
+    /**
+     * Aderisce una promozione esistente per un abbonato.
+     *
+     * @param email email dell'abbonato già registrato.
+     * @param nomePromozione nome della promozione da associare.
+     * @return true se l'associazione viene inserita, false se era già presente.
+     * @throws RuntimeException se la promozione non esiste o il database fallisce.
+     */
     public boolean aderisciPromozione(String email, String nomePromozione) {
         String checkPromoSql = "SELECT 1 FROM promozione WHERE nome = ?";
         String insertSql = "INSERT OR IGNORE INTO abbonato_promozione(email, promozione_nome) VALUES (?, ?)";
@@ -334,6 +451,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Rimuove l'associazione tra un abbonato e una promozione.
+     *
+     * @param email email dell'abbonato.
+     * @param nomePromozione promozione da disdire.
+     * @return true se almeno una riga è stata rimossa, false altrimenti.
+     * @throws RuntimeException se l'operazione JDBC fallisce.
+     */
     public boolean disdiciPromozione(String email, String nomePromozione) {
         String sql = "DELETE FROM abbonato_promozione WHERE email = ? AND promozione_nome = ?";
         try (Connection connection = databaseManager.getConnection();
@@ -346,6 +471,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Aggiorna il saldo del conto dell'abbonato identificato dalla email.
+     *
+     * @param email email dell'abbonato da aggiornare.
+     * @param nuovoSaldo nuovo saldo desiderato; i valori negativi vengono portati a zero.
+     * @return true se il record è stato aggiornato, false se l'email non è valida o assente.
+     * @throws RuntimeException se il database non consente l'update.
+     */
     public boolean aggiornaSaldoConto(String email, double nuovoSaldo) {
         if (email == null || email.isBlank()) {
             return false;
@@ -361,6 +494,13 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Recupera l'utilizzo di un singolo abbonato, creando prima la riga se manca.
+     *
+     * @param email email dell'abbonato da cercare.
+     * @return utilizzo trovato oppure un oggetto vuoto se non esiste alcun risultato.
+     * @throws RuntimeException se il recupero o la sincronizzazione falliscono.
+     */
     public Utilizzo findUtilizzoByEmail(String email) {
         String sql = """
             SELECT
@@ -380,6 +520,7 @@ public class TelecomRepository {
             """;
 
         try (Connection connection = databaseManager.getConnection()) {
+            // Garantisco che l'utente abbia sempre una riga di utilizzo coerente.
             ensureUtilizzoByEmail(connection, email);
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, email);
@@ -404,6 +545,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Inserisce una nuova promozione nel catalogo.
+     *
+     * @param nome nome univoco della promozione.
+     * @param costo costo della promozione.
+     * @param descrizione descrizione testuale del beneficio.
+     * @throws RuntimeException se l'inserimento SQL fallisce.
+     */
     public void addPromozione(String nome, double costo, String descrizione) {
         String sql = "INSERT INTO promozione(nome, costo, descrizione) VALUES (?, ?, ?)";
         try (Connection connection = databaseManager.getConnection();
@@ -417,6 +566,13 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Calcola il totale mensile dato piano tariffario e promozioni attive.
+     *
+     * @param email email dell'abbonato.
+     * @return totale mensile calcolato, oppure 0.0 se non esiste alcun dato utile.
+     * @throws RuntimeException se la query di aggregazione fallisce.
+     */
     public double calcolaTotaleMensileByEmail(String email) {
         String sql = """
             SELECT
@@ -443,6 +599,12 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Allinea o crea il pagamento del mese corrente per l'abbonato.
+     *
+     * @param email email dell'abbonato da aggiornare.
+     * @throws RuntimeException se il recupero o l'aggiornamento dei pagamenti fallisce.
+     */
     public void aggiornaPagamentoMeseCorrente(String email) {
         double totaleCorrente = calcolaTotaleMensileByEmail(email);
         String promoCorrente = getPromozioniAttiveString(email);
@@ -490,6 +652,7 @@ public class TelecomRepository {
                         continue;
                     }
 
+                    // Aggiorno la prima riga non ancora confermata, così recupero lo storico già aperto.
                     if (!isPagamentoConfermato(stato)) {
                         meseTarget = meseCorrente;
                         annoTarget = annoCorrente;
@@ -508,6 +671,7 @@ public class TelecomRepository {
                 return;
             }
 
+            // Se non ci sono rate aperte, creo il mese successivo partendo dall'ultimo confermato.
             String[] ultimoPagamento = getUltimoPagamentoConfermato(email);
             String meseNuovo;
             int annoNuovo;
@@ -534,6 +698,13 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Restituisce lo storico pagamenti dell'abbonato ordinato dal più recente.
+     *
+     * @param emailAbbonato email dell'abbonato di riferimento.
+     * @return lista osservabile dei pagamenti associati all'utente.
+     * @throws RuntimeException se la lettura dello storico fallisce.
+     */
     public ObservableList<Pagamento> getStoricoPagamenti(String emailAbbonato) {
         ObservableList<Pagamento> storico = FXCollections.observableArrayList();
         String sql = """
@@ -580,6 +751,15 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Marca un pagamento come confermato per mese e anno specifici.
+     *
+     * @param email email dell'abbonato.
+     * @param mese mese da saldare.
+     * @param anno anno del pagamento.
+     * @return true se la riga è stata aggiornata, false se non esiste.
+     * @throws RuntimeException se l'update JDBC fallisce.
+     */
     public boolean saldaPagamento(String email, String mese, int anno) {
         String sql = """
             UPDATE pagamenti
@@ -603,6 +783,12 @@ public class TelecomRepository {
         return String.join(", ", promozioni);
     }
 
+    /**
+     * Inizializza lo storico pagamenti del nuovo utente con il mese corrente.
+     *
+     * @param email email del nuovo abbonato.
+     * @throws RuntimeException se il database non consente l'inserimento iniziale.
+     */
     public void inizializzaStoricoNuovoUtente(String email) {
         String countSql = "SELECT COUNT(*) FROM pagamenti WHERE id_abbonato = ?";
         String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
@@ -618,6 +804,7 @@ public class TelecomRepository {
                 }
             }
 
+            // Fotografo le promozioni attive al momento dell'attivazione del servizio.
             String promoSnapshot = getPromozioniAttiveString(email);
             int meseCorrente = java.time.LocalDate.now().getMonthValue();
             int annoCorrente = java.time.LocalDate.now().getYear();
@@ -722,6 +909,13 @@ public class TelecomRepository {
         };
     }
 
+    /**
+     * Restituisce l'elenco dei nomi promozione già associati all'abbonato.
+     *
+     * @param email email dell'abbonato.
+     * @return lista ordinata di promozioni attive.
+     * @throws RuntimeException se la lettura delle associazioni fallisce.
+     */
     public List<String> findPromozioniAttiveByEmail(String email) {
         String sql = "SELECT promozione_nome FROM abbonato_promozione WHERE email = ? ORDER BY promozione_nome";
         List<String> result = new ArrayList<>();
@@ -740,6 +934,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Recupera il nome dell'abbonato associato a una email.
+     * Restituisce null quando l'utente non esiste o la email è vuota.
+     *
+     * @param email email da cercare.
+     * @return nome dell'abbonato oppure null se assente.
+     * @throws RuntimeException se la query fallisce.
+     */
     public String findNomeByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -760,6 +962,14 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Recupera il piano tariffario collegato all'abbonato.
+     * Restituisce null se la email è vuota o non esiste alcun piano.
+     *
+     * @param email email dell'abbonato.
+     * @return piano tariffario associato oppure null.
+     * @throws RuntimeException se il database non risponde correttamente.
+     */
     public PianoTariffario findPianoTariffarioByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -793,6 +1003,13 @@ public class TelecomRepository {
         }
     }
 
+    /**
+     * Incrementa le chiamate associate all'utenza dell'abbonato.
+     *
+     * @param email email dell'abbonato.
+     * @param minuti minuti da sommare; valori minori o uguali a zero vengono ignorati.
+     * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
+     */
     public void registraChiamata(String email, int minuti) {
         if (minuti <= 0) {
             return;
@@ -805,6 +1022,12 @@ public class TelecomRepository {
         incrementUtilizzo(email, sql, minuti);
     }
 
+    /**
+     * Incrementa di una unità il contatore SMS dell'abbonato.
+     *
+     * @param email email dell'abbonato.
+     * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
+     */
     public void registraSms(String email) {
         String sql = """
             UPDATE utilizzo
@@ -814,6 +1037,13 @@ public class TelecomRepository {
         incrementUtilizzo(email, sql, 1);
     }
 
+    /**
+     * Incrementa i megabyte associati all'utenza dell'abbonato.
+     *
+     * @param email email dell'abbonato.
+     * @param mb megabyte da sommare; valori minori o uguali a zero vengono ignorati.
+     * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
+     */
     public void registraDati(String email, int mb) {
         if (mb <= 0) {
             return;
@@ -856,6 +1086,7 @@ public class TelecomRepository {
 
     private void incrementUtilizzo(String email, String updateSql, int value) {
         try (Connection connection = databaseManager.getConnection()) {
+            // Allineo prima la riga di utilizzo, poi applico l'incremento richiesto.
             ensureUtilizzoByEmail(connection, email);
             try (PreparedStatement statement = connection.prepareStatement(updateSql)) {
                 statement.setInt(1, value);
@@ -879,6 +1110,7 @@ public class TelecomRepository {
             statement.executeUpdate();
         }
 
+        // Sincronizzo i dati anagrafici del consumo con l'ultima versione dell'abbonato.
         String syncSql = """
             UPDATE utilizzo
             SET nome = (SELECT a.nome FROM abbonato a WHERE a.email = ?),
@@ -913,6 +1145,7 @@ public class TelecomRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
             int count = resultSet.next() ? resultSet.getInt(1) : 0;
+            // Genero un numero progressivo semplice per il nuovo cliente.
             return "39" + String.format("%08d", count + 1);
         }
     }
