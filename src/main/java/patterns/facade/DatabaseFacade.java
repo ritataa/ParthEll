@@ -46,15 +46,15 @@ public final class DatabaseFacade {
      */
     public void initSystem() {
         // Creo i due componenti che preparano schema e dati iniziali
-        DatabaseSchemaMigrator schemaMigrator = new DatabaseSchemaMigrator();
-        DatabaseSeeder seeder = new DatabaseSeeder();
+        DatabaseSchemaMigrator schemaMigrator = new DatabaseSchemaMigrator();   // si occupa di creare o aggiornare lo schema del database (tabelle, colonne, indici, ecc.)
+        DatabaseSeeder seeder = new DatabaseSeeder();   // si occupa di caricare i dati iniziali (popolamento del database)
 
         // Apro una connessione e la chiudo automaticamente a fine blocco
         try (Connection connection = connectionManager.getConnection()) {
             // Prima aggiorno lo schema, poi carico i dati necessari
-            schemaMigrator.migrate(connection);
-            seeder.seedDataIfNeeded(connection);
-            seeder.seedPagamentiPerTutti(connection);
+            schemaMigrator.migrate(connection); // Migra lo schema del database (crea tabelle, aggiorna strutture, ecc.)
+            seeder.seedDataIfNeeded(connection); // Carica i dati iniziali se non sono già presenti (es. piani tariffari, amministratori)
+            seeder.seedPagamentiPerTutti(connection); // Carica i pagamenti iniziali per tutti gli abbonati, se necessario (es. saldo iniziale, transazioni di prova)
         } catch (SQLException exception) {
             // Traduco l'errore tecnico in un messaggio più chiaro per chi usa la facciata
             throw new IllegalStateException("Errore durante inizializzazione del sistema database", exception);
