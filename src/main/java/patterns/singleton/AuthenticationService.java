@@ -33,7 +33,13 @@ import service.TelecomRepository;
  */
 public class AuthenticationService {
     
-    /** Istanza singleton del servizio di autenticazione (inizializzazione eager) */
+    /** Istanza singleton del servizio di autenticazione (inizializzazione eager)
+     * 
+     * private = non può essere vista e toccata dall'esterno
+     * static = è condivisa da tutte le classi che la usano, non serve creare un oggetto per usarla. garantisce che esista una sola istanza in tutto il programma
+     * final = è una costante, non può essere modificata dopo l'assegnazione
+     */
+    
     private static final AuthenticationService INSTANCE = new AuthenticationService();  // creazione dell'unico oggetto globale di autenticazione
     
     private final TelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
