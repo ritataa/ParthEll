@@ -3,9 +3,29 @@ package patterns.singleton;
 import patterns.proxy.TelecomRepositoryProxy;
 import service.TelecomRepository;
 
+/*
+ * ==========================================================
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * ==========================================================
+ * In questo progetto utilizziamo i tag Javadoc per definire i 
+ * "contratti" delle API pubbliche, separando chiaramente 
+ * COSA fa un metodo da COME è implementato.
+ * 
+ * - author / version : Tracciano la paternità e la 
+ * manutenzione del file nel tempo.
+ * - param  : Definisce i vincoli di input (cosa il metodo 
+ * si aspetta di ricevere).
+ * - return : Definisce l'output garantito (inclusi i casi 
+ * di fallimento o null, per la sicurezza del Client).
+ * ==========================================================
+*/
+
 /**
  * Singleton per la gestione dell'autenticazione degli utenti.
  * Gestisce la verifica delle credenziali per amministratori e clienti via JDBC.
+ * JDBC = dato che il programma è scritto in Java ma il database in SQL, usiamo JDBC che è un'API (Application Programming Interface) ufficiale di Java. È un insieme di classi e di Interfacce standard 
+ * che servono a far comunicare il codice Java con qualsiasi database relazionale.
+ * 
  * Implementa il pattern Singleton per garantire una sola istanza del servizio di autenticazione.
  * 
  * @author ParthEll Team

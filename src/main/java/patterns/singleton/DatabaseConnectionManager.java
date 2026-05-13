@@ -4,31 +4,64 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/* LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * - @author / @version: Tracciano paternità e manutenzione
+ * - @return: Definisce l'output garantito per la sicurezza del Client
+ * - @throws: Esplicita le eccezioni gestibili dal chiamante
+ */
+
 /**
- * Gestisce esclusivamente la connessione SQLite tramite Singleton GoF.
+ * Gestisce esclusivamente la connessione SQLite tramite il pattern Singleton (Gang of Four).
+ * 
+ * Ruolo architetturale: fornisce un punto centrale e unico di accesso al database SQLite,
+ * garantendo che esista una sola istanza durante l'intero ciclo di vita dell'applicazione.
+ * Implementa il pattern con eager initialization per garantire thread-safety senza sincronizzazione.
+ * 
+ * @author ParthEll Team
+ * @version 1.0
  */
 public final class DatabaseConnectionManager {
 
     // URL del database SQLite locale usato dall'app.
     private static final String DB_URL = "jdbc:sqlite:parth.db";
 
-    // Singleton eager: istanza unica creata al caricamento della classe.
+    // Singleton eager: istanza unica creata al caricamento della classe (thread-safe per design).
     private static final DatabaseConnectionManager INSTANCE = new DatabaseConnectionManager();
 
+    /**
+     * Costruttore privato che carica il driver JDBC SQLite al bootstrap della classe.
+     * Fallisce velocemente se il driver non è disponibile nel classpath.
+     */
     private DatabaseConnectionManager() {
         try {
+            // Caricamento del driver SQLite: necessario prima di usare DriverManager
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException exception) {
+            // Lancia exception immediata invece che rimandare il problema a getConnection()
             throw new IllegalStateException("Driver SQLite non disponibile", exception);
         }
     }
 
-    
+    /**
+     * Ritorna l'istanza unica globale di DatabaseConnectionManager.
+     * Garantisce a tutti i client la stessa istanza (mai null).
+     * 
+     * @return l'unica istanza del Singleton (non-null)
+     */
     public static DatabaseConnectionManager getInstance() {
+        // Ritorno dell'istanza statica già costruita al caricamento della classe
         return INSTANCE;
     }
 
+    /**
+     * Ottiene una nuova connessione al database SQLite.
+     * Non ritorna mai null: lancia SQLException se la connessione fallisce.
+     * 
+     * @return una Connection valida al database SQLite (non-null)
+     * @throws SQLException se il database è inaccessibile, corrotto, o l'URL è malformato
+     */
     public Connection getConnection() throws SQLException {
+        // DriverManager.getConnection() crea una nuova Connection ogni volta
         return DriverManager.getConnection(DB_URL);
     }
 }

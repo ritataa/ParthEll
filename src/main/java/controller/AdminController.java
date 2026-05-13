@@ -17,10 +17,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-import model.Abbonato;
+import patterns.builder.Abbonato;
 import patterns.facade.AuthFacade;
-import service.TelecomRepository;
 import patterns.proxy.TelecomRepositoryProxy;
+import service.TelecomRepository;
 
 public class AdminController {
     // Dipendenze principali: repository dati e gestione autenticazione/sessione.

@@ -1,7 +1,15 @@
 package patterns.factory;
 
-import model.Abbonato;
 import model.TipoPiano;
+import patterns.builder.Abbonato;
+
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: Tracciano paternita' e manutenzione della classe.
+ * @param: Definisce i vincoli di input e le attese sui parametri.
+ * @return: Definisce l'output garantito per il Client.
+ * @throws: Esplicita le eccezioni gestibili dal chiamante.
+ */
 
 /**
  * Factory per la creazione di diversi tipi di abbonati.
@@ -16,14 +24,15 @@ public class AbbonatoFactory {
     /**
      * Crea un abbonato con piano base predefinito.
      *
-     * @param nome il nome dell'abbonato
-     * @param cognome il cognome dell'abbonato
-     * @param email l'email dell'abbonato
-     * @param residenza la residenza dell'abbonato
-     * @param numeroTelefono il numero di telefono
-     * @return un nuovo abbonato con piano base
+     * @param nome vincolo: nome da assegnare all'abbonato
+     * @param cognome vincolo: cognome da assegnare all'abbonato
+     * @param email vincolo: email da assegnare all'abbonato
+     * @param residenza vincolo: residenza da assegnare all'abbonato
+     * @param numeroTelefono vincolo: numero di telefono da assegnare all'abbonato
+     * @return un nuovo abbonato con piano base, mai null
      */
     public static Abbonato createAbbonatoBase(String nome, String cognome, String email, String residenza, String numeroTelefono) {
+        // Riusa il builder per mantenere coerenti i campi comuni.
         return Abbonato.builder()
             .nome(nome)
             .cognome(cognome)
@@ -37,15 +46,16 @@ public class AbbonatoFactory {
     /**
      * Crea un abbonato con piano plus predefinito.
      *
-     * @param nome il nome dell'abbonato
-     * @param cognome il cognome dell'abbonato
-     * @param email l'email dell'abbonato
-     * @param residenza la residenza dell'abbonato
-     * @param numeroTelefono il numero di telefono
-     * @return un nuovo abbonato con piano plus
+     * @param nome vincolo: nome da assegnare all'abbonato
+     * @param cognome vincolo: cognome da assegnare all'abbonato
+     * @param email vincolo: email da assegnare all'abbonato
+     * @param residenza vincolo: residenza da assegnare all'abbonato
+     * @param numeroTelefono vincolo: numero di telefono da assegnare all'abbonato
+     * @return un nuovo abbonato con piano plus, mai null
      */
     public static Abbonato createAbbonatoPlus(String nome, String cognome, String email,
                                               String residenza, String numeroTelefono) {
+        // Cambia solo il piano tariffario, non la struttura dell'oggetto.
         return Abbonato.builder()
             .nome(nome)
             .cognome(cognome)
@@ -59,16 +69,18 @@ public class AbbonatoFactory {
     /**
      * Crea un abbonato basato sul tipo di piano specificato.
      *
-     * @param tipo il tipo di piano (BASE, PLUS)
-     * @param nome il nome dell'abbonato
-     * @param cognome il cognome dell'abbonato
-     * @param email l'email dell'abbonato
-     * @param residenza la residenza dell'abbonato
-     * @param numeroTelefono il numero di telefono
-     * @return un nuovo abbonato del tipo specificato
+     * @param tipo vincolo: piano richiesto tra BASE e PLUS
+     * @param nome vincolo: nome da assegnare all'abbonato
+     * @param cognome vincolo: cognome da assegnare all'abbonato
+     * @param email vincolo: email da assegnare all'abbonato
+     * @param residenza vincolo: residenza da assegnare all'abbonato
+     * @param numeroTelefono vincolo: numero di telefono da assegnare all'abbonato
+     * @return un nuovo abbonato del tipo specificato, mai null
+     * @throws NullPointerException se tipo e' null
      */
     public static Abbonato createAbbonato(TipoPiano tipo, String nome, String cognome, String email,
                                           String residenza, String numeroTelefono) {
+        // Lo switch seleziona la variante concreta in base al piano.
         return switch (tipo) {
             case BASE -> createAbbonatoBase(nome, cognome, email, residenza, numeroTelefono);
             case PLUS -> createAbbonatoPlus(nome, cognome, email, residenza, numeroTelefono);
@@ -76,18 +88,20 @@ public class AbbonatoFactory {
     }
 
     /**
-     * Overload di compatibilità: converte una stringa al relativo enum.
+     * Converte una stringa nel piano enum e delega alla factory tipizzata.
      *
-     * @param tipo il tipo di piano ("base" oppure "plus")
-     * @param nome il nome dell'abbonato
-     * @param cognome il cognome dell'abbonato
-     * @param email l'email dell'abbonato
-     * @param residenza la residenza dell'abbonato
-     * @param numeroTelefono il numero di telefono
-     * @return un nuovo abbonato del tipo specificato
+     * @param tipo vincolo: valore testuale del piano, come base o plus
+     * @param nome vincolo: nome da assegnare all'abbonato
+     * @param cognome vincolo: cognome da assegnare all'abbonato
+     * @param email vincolo: email da assegnare all'abbonato
+     * @param residenza vincolo: residenza da assegnare all'abbonato
+     * @param numeroTelefono vincolo: numero di telefono da assegnare all'abbonato
+     * @return un nuovo abbonato del tipo specificato, mai null
+     * @throws IllegalArgumentException se tipo e' nullo o non valido
      */
     public static Abbonato createAbbonato(String tipo, String nome, String cognome, String email,
                                           String residenza, String numeroTelefono) {
+        // Normalizza la stringa prima di delegare alla variante tipizzata.
         return createAbbonato(TipoPiano.from(tipo), nome, cognome, email, residenza, numeroTelefono);
     }
 }
