@@ -15,57 +15,63 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import patterns.facade.AuthFacade;
 
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: Tracciano paternità e manutenzione della classe.
+ * @param: Definisce i vincoli di input richiesti dal metodo per un uso corretto.
+ * @throws: Esplicita le eccezioni gestibili dal chiamante o documentate dal contratto.
+ */
+
 /**
- * Controller per la gestione dell'interfaccia di login dell'applicazione ParthEll.
- * Gestisce l'autenticazione degli utenti (amministratori e clienti) e il routing
- * verso le rispettive interfacce.
- * 
- * Utilizza il pattern Singleton per il servizio di autenticazione e
- * implementa una gestione robusta delle eccezioni.
- * 
+ * Gestisce il login, la validazione credenziali e il routing verso le aree admin o cliente.
+ * Centralizza anche l'apertura della registrazione per mantenere la navigazione coerente.
+ * Usa il pattern MVC nel controller JavaFX per separare la logica di accesso dalla vista.
+ *
  * @author ParthEll Team
  * @version 1.0
- * @since 1.0
  */
 public class LoginController {
 
     /** Label per visualizzare messaggi di errore */
     @FXML private Label errorLabel;
-    
+
     /** Campo di input per l'email dell'utente */
     @FXML private TextField emailField;
-    
+
     /** Campo di input per la password dell'utente */
     @FXML private PasswordField passwordField;
-    
+
     /** Facade per autenticazione e sessione */
     private final AuthFacade authFacade = new AuthFacade();
 
     /**
-     * Metodo di inizializzazione chiamato automaticamente da JavaFX.
-     * Imposta lo stato iniziale dell'interfaccia.
+     * Inizializza la schermata di login e azzera eventuali messaggi precedenti.
+     * Esegue anche il logout iniziale per garantire una sessione pulita.
+     *
+     * @return nessun valore; prepara solo lo stato iniziale della vista.
      */
     public void initialize() {
+        // Reset della sessione per evitare credenziali o stato ereditato da schermate precedenti.
         authFacade.logout();
-        // Pulisce eventuali messaggi di errore all'avvio
         if (errorLabel != null) {
             errorLabel.setText("");
         }
     }
 
     /**
-     * Gestisce l'evento di login quando l'utente preme il bottone di accesso.
-     * Valida le credenziali e reindirizza l'utente all'interfaccia appropriata.
+     * Valida le credenziali e apre l'area corretta in base al tipo di utente.
+     * Se i dati sono mancanti o non validi, mostra un errore senza cambiare scena.
      * 
-     * @param event l'evento scatenato dal bottone di login
-     * @throws AuthenticationException se le credenziali non sono valide
+     * @param event evento UI del pulsante di accesso; deve provenire dal bottone login.
+     * @return nessun valore; il risultato viene gestito tramite navigazione o messaggi errore.
      */
+    // Collegamento FXML: questo handler viene richiamato dalla vista definita nel file .fxml.
     @FXML
     public void handleLogin(ActionEvent event) {
         String email = emailField.getText();
         String password = passwordField.getText();
 
-        // Validazione input
+        // Controllo minimo per evitare chiamate inutili al backend.
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             errorLabel.setText("Inserisci email e password.");
             return;
@@ -73,21 +79,21 @@ public class LoginController {
 
         try {
             String userType = authFacade.login(email.trim(), password);
-            
+
             if (userType == null) {
                 throw new AuthenticationException("Email o password non validi.");
             }
-            
-            // Pulisce il messaggio di errore
+
+            // Pulizia del feedback: se il login riesce, il messaggio precedente non serve più.
             errorLabel.setText("");
-            
-            // Routing basato sul tipo di utente
+
+            // Routing semplice: ogni profilo riceve la propria schermata dedicata.
             switch (userType) {
                 case "admin" -> loadScene(event, "/view/admin.fxml", "ParthEll - Pannello Admin");
                 case "cliente" -> loadScene(event, "/view/cliente.fxml", "ParthEll - Area Cliente");
                 default -> throw new AuthenticationException("Tipo di utente non riconosciuto: " + userType);
             }
-            
+
         } catch (AuthenticationException e) {
             errorLabel.setText(e.getMessage());
         } catch (IOException e) {
@@ -101,6 +107,14 @@ public class LoginController {
         }
     }
 
+    /**
+     * Apre la schermata di registrazione senza alterare la sessione dell'utente.
+     * È usato quando il client deve creare un nuovo account prima del login.
+     *
+     * @param event evento UI del pulsante "registrati".
+     * @return nessun valore; in caso di errore mostra un messaggio nella vista.
+     */
+    // Collegamento FXML: questo handler viene richiamato dalla vista definita nel file .fxml.
     @FXML
     public void handleApriRegistrazione(ActionEvent event) {
         try {
@@ -111,15 +125,16 @@ public class LoginController {
     }
 
     /**
-     * Carica una nuova scena nell'applicazione.
-     * Metodo helper per gestire il cambio di interfaccia dopo il login.
+     * Carica una nuova scena nell'applicazione e aggiorna il titolo della finestra.
+     * Centralizza il cambio vista per non duplicare il codice di navigazione.
      * 
-     * @param event l'evento che ha scatenato il cambio di scena
-     * @param fxmlPath il percorso del file FXML da caricare
-     * @param title il titolo della nuova finestra
-     * @throws IOException se il file FXML non può essere caricato
+     * @param event evento UI che fornisce la finestra corrente; deve essere valido.
+     * @param fxmlPath percorso dell'FXML da caricare; deve puntare a una vista esistente.
+     * @param title titolo da assegnare alla nuova finestra.
+     * @throws IOException se il file FXML non può essere caricato correttamente.
      */
     private void loadScene(ActionEvent event, String fxmlPath, String title) throws IOException {
+        // Caricamento della vista da FXML: il file decide la struttura, il controller solo il routing.
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
         Parent root = loader.load();
 
@@ -131,6 +146,7 @@ public class LoginController {
     }
 
     private void logExceptionDetails(Exception exception) {
+        // Traccia minima per il debug: stampa causa e catena dell'errore su console.
         System.err.println("Dettagli eccezione: " + exception);
         Throwable cause = exception.getCause();
         if (cause != null) {

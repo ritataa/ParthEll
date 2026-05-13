@@ -41,6 +41,21 @@ import service.TelecomRepository;
 import service.UIFormatsService;
 import service.UsageRegistrationService;
 
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: Tracciano paternità e manutenzione della classe.
+ * @param: Definisce i vincoli di input richiesti dal metodo per un uso corretto.
+ * @return: Esplicita l'output garantito o l'assenza di risultato, così il Client sa cosa può usare.
+ */
+
+/**
+ * Gestisce la dashboard cliente: consumi, promozioni, storico pagamenti e operazioni di pagamento.
+ * Coordina UI, servizi applicativi e repository per mantenere coerenti vista e stato dominio.
+ * Usa una logica a responsabilità separata per isolare navigazione, persistenza e dialoghi di pagamento.
+ *
+ * @author ParthEll Team
+ * @version 1.0
+ */
 public class ClienteController {
 
     // Dipendenze applicative: accesso dati, servizi di dominio e utilità UI.
@@ -102,6 +117,12 @@ public class ClienteController {
 
     private final ObservableList<Promozione> promozioni = FXCollections.observableArrayList();
 
+    /**
+     * Inizializza la vista cliente con saluto, tabelle e primo caricamento dati.
+     * Se i dati non sono disponibili, applica un fallback sicuro per non bloccare l'interfaccia.
+     *
+     * @return nessun valore; aggiorna solo lo stato della schermata.
+     */
     public void initialize() {
         // Bootstrap iniziale vista cliente: saluto, tabelle, dettagli e primo caricamento dati.
         String email = UserSession.getInstance().getCurrentEmail();
@@ -172,6 +193,13 @@ public class ClienteController {
         storicoPagamentiTable.setItems(dataService.loadStoricoPagamenti(email));
     }
 
+    /**
+     * Mostra i dettagli della riga selezionata nello storico pagamenti.
+     * Se non c'è selezione, avvisa l'utente senza alterare lo stato della vista.
+     *
+     * @param event evento UI generato dal pulsante; deve provenire dalla schermata cliente.
+     * @return nessun valore; eventuali errori sono mostrati tramite alert.
+     */
     @FXML
     public void handleMostraDettagliStorico(ActionEvent event) {
         Pagamento selezionato = storicoPagamentiTable == null ? null : storicoPagamentiTable.getSelectionModel().getSelectedItem();
@@ -180,6 +208,13 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Torna dalla vista dettagli allo storico compatto.
+     * Serve solo a ripristinare il pannello principale della sezione pagamenti.
+     *
+     * @param event evento UI del comando di ritorno; non richiede dati aggiuntivi.
+     * @return nessun valore; aggiorna soltanto la visibilità dei pannelli.
+     */
     @FXML
     public void handleIndietroStorico(ActionEvent event) {
         if (storageDetailsViewController != null) {
@@ -187,6 +222,13 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Salda una riga pagabile dello storico usando il saldo del conto ricaricabile.
+     * Il metodo fallisce in modo controllato se mancano conto o selezione valida.
+     *
+     * @param event evento UI del pulsante di pagamento da saldo.
+     * @return nessun valore; mostra il risultato tramite alert e refresh della vista.
+     */
     @FXML
     public void handlePagaDaSaldoDettaglio(ActionEvent event) {
         // Pagamento da saldo disponibile solo per conto ricaricabile e riga pagabile selezionata.
@@ -213,6 +255,13 @@ public class ClienteController {
         caricaStoricoPagamenti();
     }
 
+    /**
+     * Registra una chiamata e aggiorna i consumi mostrati nella dashboard.
+     * Valida i campi numerici prima di invocare il servizio di registrazione.
+     *
+     * @param event evento UI del pulsante "effettua chiamata".
+     * @return nessun valore; i problemi vengono riportati con alert.
+     */
     @FXML
     public void handleEffettuaChiamata(ActionEvent event) {
         // Validazione input + registrazione consumo voce, poi refresh dello stato UI.
@@ -242,6 +291,13 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Registra un SMS in uscita e aggiorna i contatori della vista cliente.
+     * Richiede numero e testo non vuoti per mantenere valido il flusso di input.
+     *
+     * @param event evento UI del comando di invio SMS.
+     * @return nessun valore; eventuali errori sono gestiti con alert.
+     */
     @FXML
     public void handleInviaSms(ActionEvent event) {
         // Registra un SMS in uscita e aggiorna immediatamente dashboard e campi input.
@@ -262,6 +318,13 @@ public class ClienteController {
         aggiornaSituazioneAttuale();
     }
 
+    /**
+     * Registra traffico dati consumato e ricalcola la situazione attuale.
+     * Accetta solo valori interi positivi per evitare input incoerenti.
+     *
+     * @param event evento UI del comando di uso dati.
+     * @return nessun valore; errori di validazione sono mostrati all'utente.
+     */
     @FXML
     public void handleUsaDati(ActionEvent event) {
         // Registra traffico dati (MB), con controlli di formato e valore positivo.
@@ -288,6 +351,13 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Aderisce alla promozione selezionata nella tabella delle offerte.
+     * Se l'adesione riesce, riallinea dashboard e storico pagamenti.
+     *
+     * @param event evento UI del pulsante di adesione.
+     * @return nessun valore; ritorna solo feedback tramite alert.
+     */
     @FXML
     public void handleAderisciPromozione(ActionEvent event) {
         // Adesione promozione: aggiorna sia la situazione attuale sia lo storico pagamenti.
@@ -309,6 +379,13 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Disdice la promozione selezionata e aggiorna la vista cliente.
+     * Il metodo è protetto contro selezioni mancanti o errori di dominio.
+     *
+     * @param event evento UI del pulsante di disdetta.
+     * @return nessun valore; l'esito viene comunicato con alert.
+     */
     @FXML
     public void handleDisdiciPromozione(ActionEvent event) {
         // Disdetta promozione: mantiene allineate vista principale e storico.
@@ -330,18 +407,39 @@ public class ClienteController {
         }
     }
 
+    /**
+     * Avvia il pagamento del totale mensile tramite contanti.
+     * Delegando al comando, separa la scelta UI dall'esecuzione del pagamento.
+     *
+     * @param event evento UI del pulsante contanti.
+     * @return nessun valore; l'azione continua nel comando associato.
+     */
     @FXML
     public void handlePagamentoContanti(ActionEvent event) {
         // Avvia il flusso di pagamento con strategia specifica per contanti.
         gestisciRichiestaPagamento("Contanti", new PagamentoContantiRunnable());
     }
 
+    /**
+     * Avvia il pagamento del totale mensile tramite carta.
+     * Usa un comando dedicato per mantenere il controller indipendente dalla strategia.
+     *
+     * @param event evento UI del pulsante carta.
+     * @return nessun valore; il flusso effettivo è delegato al comando.
+     */
     @FXML
     public void handlePagamentoCarta(ActionEvent event) {
         // Avvia il flusso di pagamento con strategia specifica per carta.
         gestisciRichiestaPagamento("Carta", new PagamentoCartaRunnable());
     }
 
+    /**
+     * Avvia il pagamento del totale mensile tramite bancomat/POS.
+     * La scelta del comando isola il controller dai dettagli del mezzo di pagamento.
+     *
+     * @param event evento UI del pulsante bancomat.
+     * @return nessun valore; il comando gestisce l'esecuzione concreta.
+     */
     @FXML
     public void handlePagamentoBancomat(ActionEvent event) {
         // Avvia il flusso di pagamento con strategia specifica per bancomat/POS.
@@ -520,6 +618,13 @@ public class ClienteController {
         );
     }
 
+    /**
+     * Chiude la sessione e riporta l'utente alla schermata di login.
+     * Se la navigazione fallisce, mantiene la UI corrente e mostra un errore.
+     *
+     * @param event evento UI del pulsante di logout.
+     * @return nessun valore; eventuali problemi sono comunicati con alert.
+     */
     @FXML
     public void handleLogout(ActionEvent event) {
         // Uscita controllata: ritorno al login con gestione errori di navigazione.
@@ -712,6 +817,13 @@ public class ClienteController {
         return dataService.calcolaTotaleMensile(email);
     }
 
+    /**
+     * Apre il dialog di pagamento in contanti per il totale richiesto.
+     * Il callback conferma il pagamento selezionato se l'utente completa il flusso.
+     *
+     * @param totale importo da pagare; deve essere coerente con il totale mensile corrente.
+     * @return nessun valore; la conferma avviene tramite callback.
+     */
     public void apriSchermataPagamentoContanti(double totale) {
         // Apertura dialog contanti con callback di conferma pagamento selezionato.
         paymentDialogFactory.showCashDialog(
@@ -721,6 +833,13 @@ public class ClienteController {
         );
     }
 
+    /**
+     * Apre il dialog di pagamento con carta per il totale richiesto.
+     * Se il dialog viene confermato, richiama la conferma del pagamento selezionato.
+     *
+     * @param totale importo da pagare; deve essere maggiore o uguale a zero.
+     * @return nessun valore; l'esito dipende dal dialog e dal callback.
+     */
     public void apriSchermataPagamentoCarta(double totale) {
         // Apertura dialog carta con callback di conferma pagamento selezionato.
         paymentDialogFactory.showCardDialog(
@@ -730,6 +849,13 @@ public class ClienteController {
         );
     }
 
+    /**
+     * Apre il dialog di pagamento con bancomat/POS per il totale richiesto.
+     * Mantiene uniforme il flusso di conferma tra i diversi metodi di pagamento.
+     *
+     * @param totale importo da pagare; deve essere coerente con il totale corrente.
+     * @return nessun valore; il dialog gestisce il resto del flusso.
+     */
     public void apriSchermataPagamentoBancomat(double totale) {
         // Apertura dialog bancomat con callback di conferma pagamento selezionato.
         paymentDialogFactory.showBancomatDialog(
@@ -739,6 +865,12 @@ public class ClienteController {
         );
     }
 
+    /**
+     * Conferma il pagamento della riga selezionata nello storico e lo salva nel database.
+     * Ritorna false se l'aggiornamento persistente fallisce dopo la conferma logica.
+     *
+     * @return true se il pagamento viene registrato correttamente; false se la persistenza fallisce.
+     */
     private boolean confermaPagamentoSelezionato() {
         // Conferma lato dominio + persistenza DB della riga selezionata nello storico.
         String email = UserSession.getInstance().getCurrentEmail();
@@ -759,6 +891,7 @@ public class ClienteController {
 
     // Esegue il comando di pagamento contanti.
     private class PagamentoContantiRunnable implements Runnable {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
         @Override
         public void run() {
             new CashPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
@@ -767,6 +900,7 @@ public class ClienteController {
 
     // Esegue il comando di pagamento carta.
     private class PagamentoCartaRunnable implements Runnable {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
         @Override
         public void run() {
             new CardPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
@@ -775,6 +909,7 @@ public class ClienteController {
 
     // Esegue il comando di pagamento bancomat.
     private class PagamentoBancomatRunnable implements Runnable {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
         @Override
         public void run() {
             new BancomatPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
@@ -789,6 +924,7 @@ public class ClienteController {
             this.confermato = confermato;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando get() dell'interfaccia Supplier<Boolean>, evitando errori di battitura.
         @Override
         public Boolean get() {
             confermato.set(true);

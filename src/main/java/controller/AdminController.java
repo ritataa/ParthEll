@@ -22,6 +22,21 @@ import patterns.facade.AuthFacade;
 import patterns.proxy.TelecomRepositoryProxy;
 import service.TelecomRepository;
 
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: Tracciano paternità e manutenzione della classe.
+ * @param: Definisce i vincoli di input richiesti dal metodo per un uso corretto.
+ * @return: Esplicita l'output garantito o l'assenza di risultato, così il Client sa cosa può usare.
+ */
+
+/**
+ * Gestisce l'area amministrativa con tabelle clienti, statistiche e promozioni.
+ * Coordina caricamento dati, filtri testuali e operazioni CRUD per mantenere la dashboard aggiornata.
+ * Usa un controller JavaFX centralizzato perché la vista richiede una regia unica sui flussi UI e repository.
+ *
+ * @author ParthEll Team
+ * @version 1.0
+ */
 public class AdminController {
     // Dipendenze principali: repository dati e gestione autenticazione/sessione.
     private final TelecomRepository repository = new TelecomRepositoryProxy();
@@ -58,50 +73,56 @@ public class AdminController {
     private javafx.collections.ObservableList<model.Promozione> promozioniComplete = javafx.collections.FXCollections.observableArrayList();
     private javafx.collections.ObservableList<model.Utilizzo> utilizziCompleti = javafx.collections.FXCollections.observableArrayList();
 
-        // ...altri campi...
-
-        private void caricaAbbonati() {
-            // Carica elenco completo abbonati e lo associa alla tabella amministratore.
-            abbonatiCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllAbbonati());
-            if (abbonatiTable != null) {
-                abbonatiTable.setItems(abbonatiCompleti);
-            }
+    private void caricaAbbonati() {
+        // Carica elenco completo abbonati e lo associa alla tabella amministratore.
+        abbonatiCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllAbbonati());
+        if (abbonatiTable != null) {
+            abbonatiTable.setItems(abbonatiCompleti);
         }
+    }
+
+    /**
+     * Inizializza le tabelle admin, i dataset iniziali e i listener di filtro.
+     * Prepara la vista senza esporre stati incompleti all'utente.
+     *
+     * @return nessun valore; imposta solo i dati della schermata.
+     */
     public void initialize() {
         // Inizializzazione vista admin: colonne, dataset iniziali e listener di filtro.
         // Inizializza le colonne della tabella
-    if (nomeColumn != null) nomeColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
-    if (cognomeColumn != null) cognomeColumn.setCellValueFactory(new PropertyValueFactory<>("cognome"));
-    if (numColumn != null) numColumn.setCellValueFactory(new PropertyValueFactory<>("numeroTelefono"));
-    if (pianoColumn != null) pianoColumn.setCellValueFactory(new PropertyValueFactory<>("pianoTariffario"));
+        if (nomeColumn != null) nomeColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        if (cognomeColumn != null) cognomeColumn.setCellValueFactory(new PropertyValueFactory<>("cognome"));
+        if (numColumn != null) numColumn.setCellValueFactory(new PropertyValueFactory<>("numeroTelefono"));
+        if (pianoColumn != null) pianoColumn.setCellValueFactory(new PropertyValueFactory<>("pianoTariffario"));
         caricaAbbonati();
         if (searchFieldAbbonati != null) {
             searchFieldAbbonati.textProperty().addListener(new FiltroAbbonatiListener());
         }
 
         // Colonne tabStatistiche
-    if (numClienteStat != null) numClienteStat.setCellValueFactory(new PropertyValueFactory<>("numero"));
-    if (nomeClienteStat != null) nomeClienteStat.setCellValueFactory(new PropertyValueFactory<>("nome"));
-    if (cognomeClienteStat != null) cognomeClienteStat.setCellValueFactory(new PropertyValueFactory<>("cognome"));
-    if (emailClienteStat != null) emailClienteStat.setCellValueFactory(new PropertyValueFactory<>("email"));
-    if (chiamateClienteStat != null) chiamateClienteStat.setCellValueFactory(new PropertyValueFactory<>("chiamate"));
-    if (smsClienteStat != null) smsClienteStat.setCellValueFactory(new PropertyValueFactory<>("sms"));
-    if (datiClienteStat != null) datiClienteStat.setCellValueFactory(new PropertyValueFactory<>("dati"));
-    if (promoClienteStat != null) promoClienteStat.setCellValueFactory(new PropertyValueFactory<>("promo"));
+        if (numClienteStat != null) numClienteStat.setCellValueFactory(new PropertyValueFactory<>("numero"));
+        if (nomeClienteStat != null) nomeClienteStat.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        if (cognomeClienteStat != null) cognomeClienteStat.setCellValueFactory(new PropertyValueFactory<>("cognome"));
+        if (emailClienteStat != null) emailClienteStat.setCellValueFactory(new PropertyValueFactory<>("email"));
+        if (chiamateClienteStat != null) chiamateClienteStat.setCellValueFactory(new PropertyValueFactory<>("chiamate"));
+        if (smsClienteStat != null) smsClienteStat.setCellValueFactory(new PropertyValueFactory<>("sms"));
+        if (datiClienteStat != null) datiClienteStat.setCellValueFactory(new PropertyValueFactory<>("dati"));
+        if (promoClienteStat != null) promoClienteStat.setCellValueFactory(new PropertyValueFactory<>("promo"));
         caricaUtilizzo();
         if (searchFieldStatistiche != null) {
             searchFieldStatistiche.textProperty().addListener(new FiltroStatisticheListener());
         }
 
         // Colonne tabPromo
-    if (colNomePromo != null) colNomePromo.setCellValueFactory(new PropertyValueFactory<>("nome"));
-    if (colCostoPromo != null) colCostoPromo.setCellValueFactory(new PropertyValueFactory<>("prezzo"));
-    if (colDescrizionePromo != null) colDescrizionePromo.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
+        if (colNomePromo != null) colNomePromo.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        if (colCostoPromo != null) colCostoPromo.setCellValueFactory(new PropertyValueFactory<>("prezzo"));
+        if (colDescrizionePromo != null) colDescrizionePromo.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
         caricaPromozioni();
         if (searchFieldPromozioni != null) {
             searchFieldPromozioni.textProperty().addListener(new FiltroPromozioniListener());
         }
-        }
+    }
+
     private void caricaUtilizzo() {
         // Carica statistiche aggregate di utilizzo dei clienti.
         utilizziCompleti = javafx.collections.FXCollections.observableArrayList(repository.findAllUtilizzi());
@@ -176,6 +197,14 @@ public class AdminController {
         tabStatistiche.setItems(filtrate);
     }
 
+    /**
+     * Aggiunge una nuova promozione dopo la validazione dei campi obbligatori.
+     * Se la persistenza o il parsing falliscono, informa il client con un alert.
+     *
+     * @param event evento UI del pulsante di aggiunta; deve provenire dalla vista admin.
+     * @return nessun valore; l'esito viene mostrato tramite alert.
+     */
+    // Collegamento FXML: questo metodo è richiamato dalla view amministratore definita nel file .fxml.
     @FXML
     public void handleAggiungiPromozione(ActionEvent event) {
         // Inserimento promozione con validazione campi, persistenza e refresh tabelle.
@@ -208,6 +237,14 @@ public class AdminController {
         }
     }
 
+    /**
+     * Disconnette l'admin e riporta l'interfaccia alla schermata di login.
+     * In caso di errore di caricamento, mantiene la vista corrente e notifica il problema.
+     *
+     * @param event evento UI del comando di logout.
+     * @return nessun valore; eventuali errori sono comunicati con alert.
+     */
+    // Collegamento FXML: questo metodo è richiamato dalla view amministratore definita nel file .fxml.
     @FXML
     public void handleLogout(ActionEvent event) {
         try {
@@ -226,6 +263,7 @@ public class AdminController {
         }
     }
 
+    // Utilità locale: centralizza gli alert per evitare duplicazione della UI di errore.
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -236,6 +274,7 @@ public class AdminController {
 
     // Listener testuale per filtrare la tabella abbonati.
     private class FiltroAbbonatiListener implements ChangeListener<String> {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando changed() di ChangeListener<String>, evitando errori di battitura.
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
             filtraAbbonatiPerNumero(newValue);
@@ -244,6 +283,7 @@ public class AdminController {
 
     // Listener testuale per filtrare la tabella statistiche.
     private class FiltroStatisticheListener implements ChangeListener<String> {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando changed() di ChangeListener<String>, evitando errori di battitura.
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
             filtraStatistichePerNumero(newValue);
@@ -252,6 +292,7 @@ public class AdminController {
 
     // Listener testuale per filtrare la tabella promozioni.
     private class FiltroPromozioniListener implements ChangeListener<String> {
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando changed() di ChangeListener<String>, evitando errori di battitura.
         @Override
         public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
             filtraPromozioniPerNome(newValue);

@@ -22,8 +22,8 @@ import controller.ClienteController;
  */
 public class CashPaymentCommand extends AbstractPaymentCommand {
 
-    private final ClienteController receiver;
-    private final double totale;
+    private final ClienteController receiver; // Privato: lo usa solo questo comando per fare il pagamento
+    private final double totale; // Privato: tiene l'importo da pagare, senza farlo cambiare da fuori
 
     /**
      * Costruisce un nuovo comando di pagamento in contanti.

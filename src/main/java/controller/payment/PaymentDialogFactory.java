@@ -19,8 +19,20 @@ import service.AlertManager;
 import service.FormInputValidator;
 import service.UIFormatsService;
 
+/*
+ * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+ * @author / @version: Tracciano paternità e manutenzione della classe.
+ * @param: Definisce i vincoli di input richiesti dal metodo per un uso corretto.
+ * @return: Esplicita l'output garantito o l'assenza di risultato, così il Client sa cosa può usare.
+ */
+
 /**
- * Factory dei dialog di pagamento (contanti, carta, bancomat).
+ * Costruisce e apre i dialog di pagamento per contanti, carta e bancomat.
+ * Centralizza la UI di conferma per evitare duplicazione tra i flussi di pagamento.
+ * Usa factory JavaFX perché ogni metodo genera un dialog coerente con il proprio mezzo di pagamento.
+ *
+ * @author ParthEll Team
+ * @version 1.0
  */
 public class PaymentDialogFactory {
 
@@ -29,6 +41,14 @@ public class PaymentDialogFactory {
     private final FormInputValidator validator;
     private final AlertManager alertManager;
 
+    /**
+     * Crea la factory con servizi condivisi per formato, validazione e alert.
+     * I parametri non devono essere null perché vengono usati da tutti i dialog.
+     *
+     * @param uiFormatsService servizio di formattazione valuta; non deve essere null.
+     * @param validator servizio di validazione input; non deve essere null.
+     * @param alertManager servizio di visualizzazione alert; non deve essere null.
+     */
     public PaymentDialogFactory(
         UIFormatsService uiFormatsService,
         FormInputValidator validator,
@@ -40,7 +60,12 @@ public class PaymentDialogFactory {
     }
 
     /**
-     * Mostra il dialog di pagamento contanti.
+     * Mostra il dialog di pagamento in contanti e collega i pulsanti alle azioni locali.
+     * Il callback esterno viene invocato solo dopo una conferma valida.
+     *
+     * @param owner finestra proprietaria del dialog; può essere null se non disponibile.
+     * @param totale importo da pagare; deve essere un valore coerente con il saldo richiesto.
+     * @param confermaPagamentoSelezionato callback che conferma il pagamento sullo storico; non deve essere null.
      */
     public void showCashDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         // Costruzione dialog contanti: calcolo resto, conferma pagamento e chiusura.
@@ -69,7 +94,12 @@ public class PaymentDialogFactory {
     }
 
     /**
-     * Mostra il dialog di pagamento con carta e valida i dati inseriti.
+     * Mostra il dialog di pagamento con carta e valida i dati inseriti prima della conferma.
+     * Il pagamento prosegue solo se i dati della carta sono formalmente corretti.
+     *
+     * @param owner finestra proprietaria del dialog; può essere null se non disponibile.
+     * @param totale importo da pagare; deve essere coerente con la transazione richiesta.
+     * @param confermaPagamentoSelezionato callback che conferma il pagamento sullo storico; non deve essere null.
      */
     public void showCardDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         // Dialog carta: raccolta dati, validazione e conferma transazione.
@@ -108,7 +138,12 @@ public class PaymentDialogFactory {
     }
 
     /**
-     * Mostra il dialog di pagamento bancomat/POS.
+     * Mostra il dialog di pagamento bancomat/POS e abilita il PIN solo dopo la simulazione lettura carta.
+     * La conferma esterna viene chiamata solo dopo la validazione del PIN.
+     *
+     * @param owner finestra proprietaria del dialog; può essere null se non disponibile.
+     * @param totale importo da pagare; deve essere coerente con la transazione richiesta.
+     * @param confermaPagamentoSelezionato callback che conferma il pagamento sullo storico; non deve essere null.
      */
     public void showBancomatDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
         // Dialog POS: sblocco PIN, validazione pin e autorizzazione addebito.
@@ -138,6 +173,7 @@ public class PaymentDialogFactory {
     }
 
     private Stage createDialog(Window owner, String titolo) {
+        // Finestra modale riusabile: centralizza titolo, ownership e blocco dell'interazione esterna.
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(titolo);
@@ -155,6 +191,7 @@ public class PaymentDialogFactory {
             this.dialog = dialog;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             dialog.close();
@@ -173,6 +210,7 @@ public class PaymentDialogFactory {
             this.totale = totale;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             try {
@@ -208,6 +246,7 @@ public class PaymentDialogFactory {
             this.dialog = dialog;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             try {
@@ -255,6 +294,7 @@ public class PaymentDialogFactory {
             this.dialog = dialog;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             String intestatario = intestatarioField.getText() == null ? "" : intestatarioField.getText().trim();
@@ -284,6 +324,7 @@ public class PaymentDialogFactory {
             this.pinField = pinField;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             pinField.setDisable(false);
@@ -309,6 +350,7 @@ public class PaymentDialogFactory {
             this.dialog = dialog;
         }
 
+        // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
             if (pinField.isDisabled()) {
