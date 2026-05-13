@@ -34,9 +34,9 @@ import service.TelecomRepository;
 public class AuthenticationService {
     
     /** Istanza singleton del servizio di autenticazione (inizializzazione eager) */
-    private static final AuthenticationService INSTANCE = new AuthenticationService();
+    private static final AuthenticationService INSTANCE = new AuthenticationService();  // creazione dell'unico oggetto globale di autenticazione
     
-    private final TelecomRepository repository = new TelecomRepositoryProxy();
+    private final TelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
     
     /**
      * Costruttore privato per implementare il pattern Singleton.
