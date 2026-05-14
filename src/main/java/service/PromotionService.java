@@ -32,6 +32,7 @@ public class PromotionService {
      * @return `OperationResult` sempre non nullo; in caso di errore di basso livello può propagarsi RuntimeException.
      */
     public OperationResult aderisci(String email, String nomePromozione) {
+        System.out.println("[ATTO 3 - 2. PROMOTION SERVICE] Richiesta adesione a '" + nomePromozione + "' per utente " + email + ".");
         // Tenta di aggiungere la promozione e poi riallinea il pagamento mensile.
         boolean added = repository.aderisciPromozione(email, nomePromozione);
         repository.aggiornaPagamentoMeseCorrente(email);

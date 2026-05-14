@@ -56,6 +56,7 @@ public final class UserSession {
      * @param role  il ruolo dell'utente, stringa case-sensitive (es. "cliente")
      */
     public void setCurrentUser(String email, String role) {
+        System.out.println("[ATTO 2 - 3. SINGLETON USER SESSION] Sessione aggiornata con utente autenticato: " + email + ".");
         // Salvo i dati dell'utente nella sessione in memoria
         this.currentEmail = email;
         this.currentRole = role;

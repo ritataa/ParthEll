@@ -208,9 +208,26 @@ public class AdminController {
     @FXML
     public void handleAggiungiPromozione(ActionEvent event) {
         // Inserimento promozione con validazione campi, persistenza e refresh tabelle.
-        String nome = nomePromozione == null ? "" : nomePromozione.getText();
-        String costo = costoPromozione == null ? "" : costoPromozione.getText();
-        String descrizione = descrizionePromozione == null ? "" : descrizionePromozione.getText();
+        String nome;
+        if (nomePromozione == null) {
+            nome = "";
+        } else {
+            nome = nomePromozione.getText();
+        }
+
+        String costo;
+        if (costoPromozione == null) {
+            costo = "";
+        } else {
+            costo = costoPromozione.getText();
+        }
+
+        String descrizione;
+        if (descrizionePromozione == null) {
+            descrizione = "";
+        } else {
+            descrizione = descrizionePromozione.getText();
+        }
 
         if (nome == null || nome.isBlank() || costo == null || costo.isBlank() || descrizione == null || descrizione.isBlank()) {
             showAlert(Alert.AlertType.WARNING, "Attenzione", "Compila tutti i campi della promozione.");
@@ -225,7 +242,13 @@ public class AdminController {
             }
             repository.addPromozione(nome.trim(), prezzo, descrizione.trim());
             caricaPromozioni();
-            filtraPromozioniPerNome(searchFieldPromozioni == null ? "" : searchFieldPromozioni.getText());
+            String searchText;
+            if (searchFieldPromozioni == null) {
+                searchText = "";
+            } else {
+                searchText = searchFieldPromozioni.getText();
+            }
+            filtraPromozioniPerNome(searchText);
             nomePromozione.clear();
             costoPromozione.clear();
             descrizionePromozione.clear();

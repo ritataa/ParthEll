@@ -28,6 +28,7 @@ public abstract class AbstractPaymentCommand implements PaymentCommand {
     // promesso all'interfaccia PaymentCommand, evitando metodi con firma errata.
     @Override
     public final void execute() {
+        System.out.println("[ATTO 4 - 12. TEMPLATE METHOD COMMAND] Esecuzione comando pagamento: before/do/after.");
         // 1) Preparo il contesto comune prima della logica specifica.
         beforeExecute();
         // 2) Eseguo il passo obbligatorio definito dalla sottoclasse.

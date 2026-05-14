@@ -52,6 +52,7 @@ public class DaPagareState implements PagamentoState {
     // Sicurezza: @Override verifica che la transizione pay() arrivi davvero dal contratto di PagamentoState.
     @Override
     public PagamentoState pay() {
+        System.out.println("[ATTO 4 - 15. STATE DA PAGARE] Transizione da 'Da pagare' a 'Pagamento confermato'.");
         return new PagamentoConfermatoState();
     }
 }

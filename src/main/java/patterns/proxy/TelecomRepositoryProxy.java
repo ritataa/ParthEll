@@ -245,6 +245,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String pianoTariffario,
         String conto
     ) {
+        System.out.println("[ATTO 1 - 4. PROXY REPOSITORY] Intercetto registrazione (conto) e delego il salvataggio al repository reale.");
         String normalizedEmail = requireText(email, "Email");
         String normalizedPassword = requireText(password, "Password");
         String normalizedNome = requireText(nome, "Nome");
@@ -301,6 +302,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String cvvCarta,
         String intestatarioCarta
     ) {
+        System.out.println("[ATTO 1 - 4. PROXY REPOSITORY] Intercetto registrazione con carta e delego il salvataggio al repository reale.");
         String normalizedEmail = requireText(email, "Email");
         String normalizedPassword = requireText(password, "Password");
         String normalizedNome = requireText(nome, "Nome");
@@ -347,6 +349,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     // Lo storico significa la cronologia, cioè il registro che tiene traccia di tutte le azioni future dell'utente.
     // Il proxy non fa il lavoro, delega tutto a target: è come un intermediario che pulisce l'email e poi passa la richiesta.
     public void inizializzaStoricoNuovoUtente(String email) {
+        System.out.println("[ATTO 1 - 5. PROXY REPOSITORY] Inizializzo lo storico pagamenti del nuovo utente appena registrato.");
         target.inizializzaStoricoNuovoUtente(requireText(email, "Email"));
     }
 
@@ -485,6 +488,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     // Il metodo restituisce true se la promozione è stata associata con successo (cioè il database ha salvato la associazione), oppure false se qualcosa è andato male (per esempio se l'utente aveva già quella promozione).
     // Il proxy non associa la promozione da solo, delega tutto a target: è come un intermediario che pulisce l'email e il nome, scrive il messaggio di traccia e poi passa la richiesta al database vero.
     public boolean aderisciPromozione(String email, String nomePromozione) {
+        System.out.println("[ATTO 3 - 3. PROXY REPOSITORY] Persisto adesione promozione '" + nomePromozione + "' su database.");
         String normalizedEmail = requireText(email, "Email");
         String normalizedPromozione = requireText(nomePromozione, "Nome promozione");
         log("Adesione promozione " + normalizedPromozione + " per " + normalizedEmail);
@@ -548,6 +552,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     // gli utenti e i loro saldi. Il proxy non cambia direttamente i dati: fa i
     // controlli, registra l'azione e delega l'effettiva modifica a target.
     public boolean aggiornaSaldoConto(String email, double nuovoSaldo) {
+        System.out.println("[ATTO 4 - 5. PROXY REPOSITORY] Aggiorno saldo conto dopo ricarica: nuovo saldo = " + nuovoSaldo + " EUR.");
         String normalizedEmail = requireText(email, "Email");
         if (nuovoSaldo < 0) {
             throw new IllegalArgumentException("Il nuovo saldo non può essere negativo");
@@ -641,6 +646,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
     // direttamente; fa i controlli e delega l'azione a target, che modifica
     // i dati nel database.
     public boolean saldaPagamento(String email, String mese, int anno) {
+        System.out.println("[ATTO 4 - 9. PROXY REPOSITORY] Saldo il pagamento dello storico per " + mese + " " + anno + ".");
         String normalizedEmail = requireText(email, "Email");
         String normalizedMese = requireText(mese, "Mese");
         if (anno <= 0) {

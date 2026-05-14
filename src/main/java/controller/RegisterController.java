@@ -93,6 +93,7 @@ public class RegisterController {
     // Collegamento FXML: questo handler viene richiamato dalla vista definita nel file .fxml.
     @FXML
     public void handleRegistrati(ActionEvent event) {
+        System.out.println("[ATTO 1 - 1. REGISTER CONTROLLER] L'utente ha cliccato Registrati. Avvio validazione dati e flusso di creazione account.");
         String email = emailField.getText();
         String password = passwordField.getText();
         String nome = nomeField.getText();

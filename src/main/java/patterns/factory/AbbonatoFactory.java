@@ -101,6 +101,7 @@ public class AbbonatoFactory {
      */
     public static Abbonato createAbbonato(String tipo, String nome, String cognome, String email,
                                           String residenza, String numeroTelefono) {
+        System.out.println("[ATTO 1 - 2. FACTORY ABBONATO FACTORY] Creo l'abbonato in base al tipo piano richiesto dall'utente.");
         // Normalizza la stringa prima di delegare alla variante tipizzata.
         return createAbbonato(TipoPiano.from(tipo), nome, cognome, email, residenza, numeroTelefono);
     }

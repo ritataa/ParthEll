@@ -68,6 +68,7 @@ public class LoginController {
     // Collegamento FXML: questo handler viene richiamato dalla vista definita nel file .fxml.
     @FXML
     public void handleLogin(ActionEvent event) {
+        System.out.println("[ATTO 2 - 1. LOGIN CONTROLLER] L'utente ha cliccato Accedi. Passo le credenziali alla Facade di autenticazione.");
         String email = emailField.getText();
         String password = passwordField.getText();
 

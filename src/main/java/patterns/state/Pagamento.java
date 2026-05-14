@@ -206,6 +206,7 @@ public class Pagamento {
      * Se lo stato corrente non consente l'operazione, la logica e demandata all'implementazione concreta dello State.
      */
     public void confermaPagamentoState() {
+        System.out.println("[ATTO 4 - 14. STATE PAGAMENTO] Richiesta conferma pagamento: transizione verso stato successivo.");
         // Delego la transizione al tipo di stato concreto per mantenere il comportamento incapsulato.
         state = state.pay();
         stato.set(state.getNome());

@@ -49,6 +49,7 @@ public class CardPaymentCommand extends AbstractPaymentCommand {
     // battitura nel nome del metodo e garantendo il rispetto del contratto ereditario
     @Override
     protected void doExecute() {
+        System.out.println("[ATTO 4 - 13. COMMAND CARD PAYMENT COMMAND] Invoco il receiver per aprire la schermata di pagamento con carta.");
         // Delega al controller l'apertura della schermata di pagamento con carta,
         // passando l'importo totale come parametro vincolo della transazione
         receiver.apriSchermataPagamentoCarta(totale);

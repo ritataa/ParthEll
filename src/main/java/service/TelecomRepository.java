@@ -1161,7 +1161,11 @@ public class TelecomRepository {
     }
 
     private TipoPiano toTipoPiano(String value) {
-        return value == null ? null : TipoPiano.from(value);
+        if (value == null) {
+            return null;
+        } else {
+            return TipoPiano.from(value);
+        }
     }
 
     private Integer getNullableInteger(ResultSet resultSet, String columnName) throws SQLException {

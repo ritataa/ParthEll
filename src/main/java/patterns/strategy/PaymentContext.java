@@ -43,6 +43,7 @@ public class PaymentContext {
      * @throws IllegalStateException se non e' stata impostata alcuna strategia di pagamento.
      */
     public String executePayment(double amount) {
+        System.out.println("[ATTO 4 - 11. STRATEGY PAYMENT CONTEXT] Eseguo il pagamento usando la strategia selezionata a runtime.");
         if (strategy == null) {
             // Blocca l'uso del contesto senza una strategia valida.
             throw new IllegalStateException("Strategia di pagamento non impostata");

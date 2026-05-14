@@ -26,6 +26,7 @@ public class BancomatPaymentStrategy implements PaymentStrategy {
      */
     @Override
     public String pay(double amount) {
+        System.out.println("[ATTO 4 - 10. BANCOMAT PAYMENT STRATEGY] Avvio algoritmo di pagamento con bancomat.");
         // Format: due decimali per una rappresentazione leggibile dell'importo
         // Restituisce sempre una stringa di conferma; non si propagano eccezioni
         return String.format("Pagamento con bancomat registrato: %.2f EUR", amount);

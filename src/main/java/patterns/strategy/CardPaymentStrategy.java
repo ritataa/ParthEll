@@ -26,6 +26,7 @@ public class CardPaymentStrategy implements PaymentStrategy {
     // Sicurezza: obbliga Java a verificare che sto davvero implementando il metodo pay() promesso all'interfaccia PaymentStrategy, evitando errori di battitura.
     @Override
     public String pay(double amount) {
+        System.out.println("[ATTO 4 - 10. CARD PAYMENT STRATEGY] Avvio algoritmo di pagamento con carta di credito.");
         // Formatta l'importo in modo leggibile per il client.
         return String.format("Pagamento con carta registrato: %.2f EUR", amount);
     }

@@ -45,7 +45,11 @@ public class Abbonato {
         this.numeroTelefono = numeroTelefono;
         this.pianoTariffario = pianoTariffario;
         // Se non viene fornito alcun conto, usiamo un ContoFisso di default
-        this.conto = conto != null ? conto : new ContoFisso();
+        if (conto != null) {
+            this.conto = conto;
+        } else {
+            this.conto = new ContoFisso();
+        }
     }
 
     public String getNome() { return nome; }
@@ -58,7 +62,14 @@ public class Abbonato {
      *
      * @return Conto non-null associato all'abbonato.
      */
-    public void setConto(Conto conto) { this.conto = conto != null ? conto : new ContoFisso(); } // evita valori null sostituendo con default
+    public void setConto(Conto conto) {
+        // evita valori null sostituendo con default
+        if (conto != null) {
+            this.conto = conto;
+        } else {
+            this.conto = new ContoFisso();
+        }
+    }
 
     public String getCognome() { return cognome; } // ritorna il cognome
     public void setCognome(String cognome) { this.cognome = cognome; } // assegna il cognome
@@ -164,7 +175,11 @@ public class Abbonato {
 
         public Builder conto(Conto conto) {
             // Se il chiamante passa null, manteniamo il ContoFisso di default
-            this.conto = conto != null ? conto : new ContoFisso();
+            if (conto != null) {
+                this.conto = conto;
+            } else {
+                this.conto = new ContoFisso();
+            }
             // imposta il conto (non-null garantito)
             return this;
         }
@@ -200,6 +215,7 @@ public class Abbonato {
          * @return Istanza di Abbonato costruita; non lancia eccezioni.
          */
         public Abbonato build() {
+            System.out.println("[ATTO 1 - 3. BUILDER ABBONATO BUILDER] Costruisco l'oggetto Abbonato con i dati raccolti nella registrazione.");
             // costruisce l'istanza usando i valori raccolti nel builder
             Abbonato abbonato = new Abbonato(nome, cognome, email, residenza, numeroTelefono, pianoTariffario, conto);
             abbonato.numeroCarta = this.numeroCarta;

@@ -29,7 +29,14 @@ import service.UIFormatsService;
 /**
  * Costruisce e apre i dialog di pagamento per contanti, carta e bancomat.
  * Centralizza la UI di conferma per evitare duplicazione tra i flussi di pagamento.
- * Usa factory JavaFX perché ogni metodo genera un dialog coerente con il proprio mezzo di pagamento.
+ * 
+ * NOTE: Questa NON è una vera implementazione del Factory Pattern (come in patterns/factory).
+ * È un "UI Factory" o "Dialog Factory" perché:
+ *   - Crea Stage e Scene JavaFX, NON istanze di oggetti di business logic (Pagamento, ContoRicaricabile, ecc.)
+ *   - Non ritorna interfacce astratte, ma componenti UI concrete
+ *   - Il suo scopo è centralizzare la costruzione di dialog, non astrarre creazioni di entità di dominio
+ * È più simile a un Builder di UI che a un vero Factory Pattern. Posizionato in "controller/payment"
+ * per motivi organizzativi (UI controller), non in "patterns/factory" per questa ragione.
  *
  * @author ParthEll Team
  * @version 1.0
@@ -102,6 +109,7 @@ public class PaymentDialogFactory {
      * @param confermaPagamentoSelezionato callback che conferma il pagamento sullo storico; non deve essere null.
      */
     public void showCardDialog(Window owner, double totale, Supplier<Boolean> confermaPagamentoSelezionato) {
+        System.out.println("[ATTO 4 - 4. PAYMENT DIALOG FACTORY] Apro il dialog Carta con importo da confermare.");
         // Dialog carta: raccolta dati, validazione e conferma transazione.
         Stage dialog = createDialog(owner, "Pagamento con Carta");
 
@@ -258,6 +266,15 @@ public class PaymentDialogFactory {
                 if (!confermaPagamentoSelezionato.get()) {
                     return;
                 }
+
+                // --- AGGANCIO PATTERN STRATEGY (CONTANTI) ---
+                patterns.strategy.PaymentContext context = new patterns.strategy.PaymentContext();
+                context.setStrategy(new patterns.strategy.CashPaymentStrategy());
+                
+                String messaggioConferma = context.executePayment(totale);
+                System.out.println(messaggioConferma); 
+                // --------------------------------------------
+
                 alertManager.show(Alert.AlertType.INFORMATION, "Pagamento", "Pagamento in contanti confermato.");
                 dialog.close();
             } catch (NumberFormatException ex) {
@@ -297,10 +314,34 @@ public class PaymentDialogFactory {
         // Sicurezza: obbliga Java a verificare che sto davvero implementando handle() dell'interfaccia EventHandler, evitando errori di battitura.
         @Override
         public void handle(ActionEvent event) {
-            String intestatario = intestatarioField.getText() == null ? "" : intestatarioField.getText().trim();
-            String numeroCarta = numeroCartaField.getText() == null ? "" : numeroCartaField.getText().trim();
-            String scadenza = scadenzaField.getText() == null ? "" : scadenzaField.getText().trim();
-            String cvv = cvvField.getText() == null ? "" : cvvField.getText().trim();
+            System.out.println("[ATTO 4 - 5. PAYMENT DIALOG FACTORY] L'utente ha cliccato Paga Ora. Avvio validazione dati carta.");
+            String intestatario;
+            if (intestatarioField.getText() == null) {
+                intestatario = "";
+            } else {
+                intestatario = intestatarioField.getText().trim();
+            }
+
+            String numeroCarta;
+            if (numeroCartaField.getText() == null) {
+                numeroCarta = "";
+            } else {
+                numeroCarta = numeroCartaField.getText().trim();
+            }
+
+            String scadenza;
+            if (scadenzaField.getText() == null) {
+                scadenza = "";
+            } else {
+                scadenza = scadenzaField.getText().trim();
+            }
+
+            String cvv;
+            if (cvvField.getText() == null) {
+                cvv = "";
+            } else {
+                cvv = cvvField.getText().trim();
+            }
 
             if (!validator.isValidCardData(intestatario, numeroCarta, scadenza, cvv)) {
                 alertManager.show(Alert.AlertType.WARNING, "Pagamento", "Controlla i dati carta: numero 16 cifre, scadenza MM/AA, CVV 3 cifre.");
@@ -310,6 +351,18 @@ public class PaymentDialogFactory {
             if (!confermaPagamentoSelezionato.get()) {
                 return;
             }
+
+            // --- INIZIO FIX: USIAMO IL PATTERN STRATEGY ---
+            // 1. Chiamiamo il "telecomando" universale (il Context)
+            patterns.strategy.PaymentContext context = new patterns.strategy.PaymentContext();
+            
+            // 2. Gli diciamo "Usa la strategia della Carta di Credito"
+            context.setStrategy(new patterns.strategy.CardPaymentStrategy());
+            
+            // 3. Eseguiamo il pagamento tramite il pattern!
+            String messaggioConferma = context.executePayment(totale);
+            System.out.println(messaggioConferma); // Questo stamperà il log che prima non usciva!
+            // --- FINE FIX ---
 
             alertManager.show(Alert.AlertType.INFORMATION, "Pagamento", "Transazione con carta completata. Totale addebitato: " + uiFormatsService.formatEuro(totale));
             dialog.close();
@@ -357,7 +410,12 @@ public class PaymentDialogFactory {
                 alertManager.show(Alert.AlertType.WARNING, "POS", "Prima simula la lettura della carta.");
                 return;
             }
-            String pin = pinField.getText() == null ? "" : pinField.getText().trim();
+            String pin;
+            if (pinField.getText() == null) {
+                pin = "";
+            } else {
+                pin = pinField.getText().trim();
+            }
             if (!pin.matches("\\d{4,6}")) {
                 alertManager.show(Alert.AlertType.WARNING, "POS", "PIN non valido.");
                 return;
@@ -365,6 +423,15 @@ public class PaymentDialogFactory {
             if (!confermaPagamentoSelezionato.get()) {
                 return;
             }
+
+            // --- AGGANCIO PATTERN STRATEGY (BANCOMAT) ---
+            patterns.strategy.PaymentContext context = new patterns.strategy.PaymentContext();
+            context.setStrategy(new patterns.strategy.BancomatPaymentStrategy());
+            
+            String messaggioConferma = context.executePayment(totale);
+            System.out.println(messaggioConferma);
+            // --------------------------------------------
+
             alertManager.show(Alert.AlertType.INFORMATION, "POS", "Transazione autorizzata. Totale addebitato: " + uiFormatsService.formatEuro(totale));
             dialog.close();
         }

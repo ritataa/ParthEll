@@ -19,6 +19,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
@@ -124,6 +125,7 @@ public class ClienteController {
      * @return nessun valore; aggiorna solo lo stato della schermata.
      */
     public void initialize() {
+        System.out.println("[ATTO 2 - 4. CLIENTE CONTROLLER] Dashboard cliente in apertura. Avvio caricamento dati iniziali e storico pagamenti.");
         // Bootstrap iniziale vista cliente: saluto, tabelle, dettagli e primo caricamento dati.
         String email = UserSession.getInstance().getCurrentEmail();
         if (welcomeLabel != null) {
@@ -202,7 +204,13 @@ public class ClienteController {
      */
     @FXML
     public void handleMostraDettagliStorico(ActionEvent event) {
-        Pagamento selezionato = storicoPagamentiTable == null ? null : storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        System.out.println("[ATTO 4 - 6. CLIENTE CONTROLLER] L'utente ha aperto i dettagli di una voce nello Storico Pagamenti.");
+        Pagamento selezionato;
+        if (storicoPagamentiTable == null) {
+            selezionato = null;
+        } else {
+            selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        }
         if (storageDetailsViewController == null || !storageDetailsViewController.showDetails(selezionato)) {
             showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Storico Pagamenti", "Seleziona una riga per vedere i dettagli.");
         }
@@ -231,6 +239,7 @@ public class ClienteController {
      */
     @FXML
     public void handlePagaDaSaldoDettaglio(ActionEvent event) {
+        System.out.println("[ATTO 4 - 7. CLIENTE CONTROLLER] L'utente ha cliccato Paga dal dettaglio storico. Verifico conto e pagamento selezionato.");
         // Pagamento da saldo disponibile solo per conto ricaricabile e riga pagabile selezionata.
         String email = UserSession.getInstance().getCurrentEmail();
         Abbonato abbonato = repository.findAbbonatoByEmail(email);
@@ -244,7 +253,12 @@ public class ClienteController {
             return;
         }
 
-        Pagamento selezionato = storicoPagamentiTable == null ? null : storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        Pagamento selezionato;
+        if (storicoPagamentiTable == null) {
+            selezionato = null;
+        } else {
+            selezionato = storicoPagamentiTable.getSelectionModel().getSelectedItem();
+        }
         if (selezionato == null || !selezionato.isPagabile()) {
             showAlert(javafx.scene.control.Alert.AlertType.WARNING, "Pagamento", "Seleziona una riga 'Da pagare' nello storico.");
             return;
@@ -360,6 +374,7 @@ public class ClienteController {
      */
     @FXML
     public void handleAderisciPromozione(ActionEvent event) {
+        System.out.println("[ATTO 3 - 1. CLIENTE CONTROLLER] L'utente ha cliccato Aderisci promozione. Invio richiesta al Promotion Service.");
         // Adesione promozione: aggiorna sia la situazione attuale sia lo storico pagamenti.
         Promozione selezionata = promozioniTable.getSelectionModel().getSelectedItem();
         
@@ -429,6 +444,7 @@ public class ClienteController {
      */
     @FXML
     public void handlePagamentoCarta(ActionEvent event) {
+        System.out.println("[ATTO 4 - 1. CLIENTE CONTROLLER] L'utente ha scelto Carta nel Wallet. Avvio il flusso di ricarica/pagamento.");
         // Avvia il flusso di pagamento con strategia specifica per carta.
         gestisciRichiestaPagamento("Carta", new PagamentoCartaRunnable());
     }
@@ -451,6 +467,7 @@ public class ClienteController {
      * o se scalare direttamente i soldi dal conto ricaricabile.
      */
     private void gestisciRichiestaPagamento(String metodoPagamento, Runnable apriFinestraPagamentoCommand) {
+        System.out.println("[ATTO 4 - 2. CLIENTE CONTROLLER] Instrado la richiesta su ricarica immediata o pagamento storico in base al tipo conto.");
         String email = UserSession.getInstance().getCurrentEmail();
         Abbonato abbonatoLoggato = repository.findAbbonatoByEmail(email); 
         
@@ -494,6 +511,7 @@ public class ClienteController {
     }
 
     private void gestisciRicaricaConto(String email, ContoRicaricabile contoRicaricabile, String metodoPagamento) {
+        System.out.println("[ATTO 4 - 3. CLIENTE CONTROLLER] Flusso ricarica conto ricaricabile avviato con metodo: " + metodoPagamento + ".");
         // Flusso ricarica: input importo, eventuale validazione pagamento, update saldo e tentativo saldo storico.
         Double importoRicarica = chiediImportoRicarica(metodoPagamento);
         if (importoRicarica == null) {
@@ -537,6 +555,7 @@ public class ClienteController {
      * Ritorna true se confermato dall'utente, false se cancellato.
      */
     private boolean mostraDialogoPagamento(String metodoPagamento, double importo) {
+        System.out.println("[ATTO 4 - 4. CLIENTE CONTROLLER] Apro dialog di pagamento per " + metodoPagamento + " con importo " + importo + " EUR.");
         AtomicBoolean confermato = new AtomicBoolean(false);
 
         if ("Carta".equals(metodoPagamento)) {
@@ -729,7 +748,13 @@ public class ClienteController {
         }
 
         if (pianoAttivoLabel != null) {
-            pianoAttivoLabel.setText(pianoTariffario == null ? "-" : pianoTariffario.getNome());
+            String pianoText;
+            if (pianoTariffario == null) {
+                pianoText = "-";
+            } else {
+                pianoText = pianoTariffario.getNome();
+            }
+            pianoAttivoLabel.setText(pianoText);
         }
 
         if (numeroAttualeLabel != null) {
@@ -826,8 +851,14 @@ public class ClienteController {
      */
     public void apriSchermataPagamentoContanti(double totale) {
         // Apertura dialog contanti con callback di conferma pagamento selezionato.
+        Window ownerWindow;
+        if (welcomeLabel == null || welcomeLabel.getScene() == null) {
+            ownerWindow = null;
+        } else {
+            ownerWindow = welcomeLabel.getScene().getWindow();
+        }
         paymentDialogFactory.showCashDialog(
-            welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
+            ownerWindow,
             totale,
             this::confermaPagamentoSelezionato
         );
@@ -842,8 +873,14 @@ public class ClienteController {
      */
     public void apriSchermataPagamentoCarta(double totale) {
         // Apertura dialog carta con callback di conferma pagamento selezionato.
+        Window ownerWindow;
+        if (welcomeLabel == null || welcomeLabel.getScene() == null) {
+            ownerWindow = null;
+        } else {
+            ownerWindow = welcomeLabel.getScene().getWindow();
+        }
         paymentDialogFactory.showCardDialog(
-            welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
+            ownerWindow,
             totale,
             this::confermaPagamentoSelezionato
         );
@@ -858,8 +895,14 @@ public class ClienteController {
      */
     public void apriSchermataPagamentoBancomat(double totale) {
         // Apertura dialog bancomat con callback di conferma pagamento selezionato.
+        Window ownerWindow;
+        if (welcomeLabel == null || welcomeLabel.getScene() == null) {
+            ownerWindow = null;
+        } else {
+            ownerWindow = welcomeLabel.getScene().getWindow();
+        }
         paymentDialogFactory.showBancomatDialog(
-            welcomeLabel == null || welcomeLabel.getScene() == null ? null : welcomeLabel.getScene().getWindow(),
+            ownerWindow,
             totale,
             this::confermaPagamentoSelezionato
         );
@@ -872,6 +915,7 @@ public class ClienteController {
      * @return true se il pagamento viene registrato correttamente; false se la persistenza fallisce.
      */
     private boolean confermaPagamentoSelezionato() {
+        System.out.println("[ATTO 4 - 8. STATE PAGAMENTO] Confermo la fattura selezionata: applico transizione di stato e persistenza su database.");
         // Conferma lato dominio + persistenza DB della riga selezionata nello storico.
         String email = UserSession.getInstance().getCurrentEmail();
         

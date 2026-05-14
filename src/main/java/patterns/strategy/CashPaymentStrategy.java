@@ -26,6 +26,7 @@ public class CashPaymentStrategy implements PaymentStrategy {
      * @return stringa formattata non null con l'esito del pagamento in contanti.
      */
     public String pay(double amount) {
+        System.out.println("[ATTO 4 - 11. CASH PAYMENT STRATEGY] Avvio algoritmo di pagamento in contanti.");
         // Formatta il valore con due decimali per una conferma leggibile e uniforme.
         return String.format("Pagamento in contanti registrato: %.2f EUR", amount);
     }

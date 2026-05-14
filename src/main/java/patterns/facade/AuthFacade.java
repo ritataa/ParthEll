@@ -40,6 +40,7 @@ public class AuthFacade {
      *         oppure null se l'autenticazione fallisce
      */
     public String login(String email, String password) {
+        System.out.println("[ATTO 2 - 2. FACADE AUTH FACADE] Ricevute credenziali dal controller. Delego al servizio di autenticazione.");
         // Chiedo al servizio di autenticazione di verificare le credenziali
         String userType = authenticationService.authenticate(email, password);
         // Se l'autenticazione è andata a buon fine, memorizzo l'utente nella sessione
