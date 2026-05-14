@@ -50,9 +50,14 @@ import service.UsageRegistrationService;
  */
 
 /**
- * Gestisce la dashboard cliente: consumi, promozioni, storico pagamenti e operazioni di pagamento.
- * Coordina UI, servizi applicativi e repository per mantenere coerenti vista e stato dominio.
- * Usa una logica a responsabilità separata per isolare navigazione, persistenza e dialoghi di pagamento.
+    Gestisce l'area cliente con storico pagamenti, utilizzi e flussi di pagamento. Utilizza: 
+    - Factory Pattern tramite PaymentDialogFactory e StoricoPagamentiTableConfigurator per creare dialoghi e celle UI, 
+    - Command Pattern tramite CashPaymentCommand, CardPaymentCommand, BancomatPaymentCommand per incapsulare azioni di pagamento, 
+    - Proxy Pattern tramite TelecomRepositoryProxy, 
+    - Facade Pattern tramite AuthFacade,  
+    - Singleton Pattern tramite UserSession per accedere alla sessione corrente, 
+    - State Pattern tramite Pagamento per gestire stati pagamenti, 
+    - MVC Pattern come controller JavaFX.
  *
  * @author ParthEll Team
  * @version 1.0

@@ -30,9 +30,10 @@ import service.TelecomRepository;
  */
 
 /**
- * Gestisce l'area amministrativa con tabelle clienti, statistiche e promozioni.
- * Coordina caricamento dati, filtri testuali e operazioni CRUD per mantenere la dashboard aggiornata.
- * Usa un controller JavaFX centralizzato perché la vista richiede una regia unica sui flussi UI e repository.
+    Coordina la dashboard amministrativa con gestione tabelle, filtri e operazioni CRUD. Utilizza:
+    - Proxy Pattern tramite TelecomRepositoryProxy per intercettare accessi al repository, 
+    - Facade Pattern tramite AuthFacade per unificare autenticazione e sessione, 
+    - MVC Pattern come controller JavaFX per separare logica di presentazione dalla vista FXML.
  *
  * @author ParthEll Team
  * @version 1.0

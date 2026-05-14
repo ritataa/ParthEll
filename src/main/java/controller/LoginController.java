@@ -23,9 +23,10 @@ import patterns.facade.AuthFacade;
  */
 
 /**
- * Gestisce il login, la validazione credenziali e il routing verso le aree admin o cliente.
- * Centralizza anche l'apertura della registrazione per mantenere la navigazione coerente.
- * Usa il pattern MVC nel controller JavaFX per separare la logica di accesso dalla vista.
+    Gestisce il login, la validazione credenziali e il routing verso le aree admin o cliente.
+    Centralizza anche l'apertura della registrazione per mantenere la navigazione coerente. Utilizza: 
+    - Facade Pattern tramite AuthFacade per unificare verifiche credenziali e gestione sessione, 
+    - MVC Pattern come controller JavaFX per separare logica di login dalla vista.
  *
  * @author ParthEll Team
  * @version 1.0

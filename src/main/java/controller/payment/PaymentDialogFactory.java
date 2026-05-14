@@ -26,9 +26,13 @@ import service.UIFormatsService;
  * @return: Esplicita l'output garantito o l'assenza di risultato, così il Client sa cosa può usare.
  */
 
+
+
 /**
- * Costruisce e apre i dialog di pagamento per contanti, carta e bancomat.
- * Centralizza la UI di conferma per evitare duplicazione tra i flussi di pagamento.
+    Rappresenta il punto di incontro tra l'interfaccia grafica e la logica di business. Utilizza: 
+    - Factory Pattern per la creazione dei componenti UI (Stage e Scene), 
+    - Command Pattern per gestire gli eventi dei pulsanti tramite handler inner-class (CalcolaRestoHandler, ConfermaContantiHandler, etc.),  
+    - Strategy Pattern per delegare l'esecuzione dei pagamenti a classi specializzate (CashPaymentStrategy, CardPaymentStrategy, BancomatPaymentStrategy).
  * 
  * NOTE: Questa NON è una vera implementazione del Factory Pattern (come in patterns/factory).
  * È un "UI Factory" o "Dialog Factory" perché:

@@ -17,9 +17,16 @@ import patterns.state.Pagamento;
  */
 
 /**
- * Coordina il caricamento dei dati necessari alla dashboard cliente.
- * Centralizza le letture e i calcoli per mantenere la UI pulita e coerente.
- * Usa un service layer per separare la logica di presentazione dall'accesso ai dati.
+    Coordina il caricamento dei dati necessari alla dashboard cliente.
+    Centralizza le letture e i calcoli per mantenere la UI pulita e coerente. 
+    Implementa il pattern Service Layer per gestire le "regole" dell'applicazione.
+    Scopo: Fa da ponte tra l'interfaccia grafica (Controller) e i dati (Repository), contenendo la vera logica di business.
+    Ruolo nell'MVC: Mantiene i Controller "puliti". Il Controller raccoglie le azioni dell'utente, le passa a questo Service che fa i calcoli o i controlli necessari, e poi il Service delega al Repository il salvataggio o la lettura nel database.
+    Utilizza il Repository Pattern tramite TelecomRepository per query centralizzate.
+    Scopo: Nascondere tutta la complessità delle query SQL (JDBC) al resto del programma.
+    Ruolo nell'MVC: È il livello più profondo del Model. Si occupa di tradurre il linguaggio 
+    del database (SQL) nel linguaggio del nostro programma (Oggetti Java), mantenendo i Service 
+    e i Controller completamente ignari di come funziona il database.
  *
  * @author ParthEll Team
  * @version 1.0

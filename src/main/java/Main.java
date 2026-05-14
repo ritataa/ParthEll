@@ -7,6 +7,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import patterns.facade.DatabaseFacade;
 
+/*
+    Entry point applicazione. 
+    Utilizza il Facade Pattern tramite DatabaseFacade per centralizzare inizializzazione sistema (database, configurazioni).
+*/
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {

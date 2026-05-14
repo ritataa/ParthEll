@@ -29,9 +29,16 @@ import patterns.state.Pagamento;
  */
 
 /**
- * Repository JDBC per leggere e aggiornare anagrafica, promozioni, utilizzi e pagamenti.
- * Centralizza l'accesso ai dati e riduce il coupling tra controller e database.
- * Usa il pattern Repository per isolare le query SQL dalla logica applicativa.
+    Centralizza l'accesso ai dati mediante JDBC. Implementa il Repository Pattern per isolare query SQL dalla logica applicativa.
+    Scopo Repository Pattern: Nasconde tutta la complessità delle query SQL (JDBC) al resto del programma.
+    Ruolo nell'MVC: Fa parte del Model. Garantisce che i Controller grafici 
+    non tocchino mai il database direttamente. Il Controller chiede i dati 
+    a questa classe, che fa il lavoro sporco e restituisce oggetti Java puliti. 
+
+    TelecomRepository utilizza: 
+    - Singleton Pattern tramite DatabaseManager.getInstance() per la connessione unica, 
+    - Builder Pattern tramite la classe Abbonato.Builder per costruire entità complesse, 
+    - State Pattern tramite Pagamento per rappresentare stati pagamenti.
  *
  * @author ParthEll Team
  * @version 1.0

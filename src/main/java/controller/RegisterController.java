@@ -29,9 +29,11 @@ import service.TelecomRepository;
  */
 
 /**
- * Gestisce la registrazione di nuovi utenti e la raccolta dei dati necessari al loro profilo.
- * Coordina validazione input, scelta del tipo di conto e creazione dell'account sul repository.
- * Usa un controller JavaFX perché il flusso dipende dalla visibilità dinamica dei campi della carta.
+    Gestisce la registrazione di nuovi utenti e la raccolta dei dati necessari al loro profilo.
+    Coordina validazione input, scelta del tipo di conto e creazione dell'account sul repository. Utilizza: 
+    - Proxy Pattern tramite TelecomRepositoryProxy per accesso dati, 
+    - Strategy Pattern implicitamente tramite FormInputValidator per validazione input, 
+    - MVC Pattern come controller JavaFX.
  *
  * @author ParthEll Team
  * @version 1.0

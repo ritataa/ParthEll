@@ -17,9 +17,11 @@ import patterns.facade.AuthFacade;
  */
 
 /**
- * Gestisce il ritorno alla schermata di login dopo il logout.
- * Centralizza il cambio scena per evitare duplicazione nei controller che devono uscire dall'area protetta.
- * Mantiene separata la navigazione dalla logica di autenticazione, così il controller resta più leggibile.
+    Gestisce il ritorno alla schermata di login dopo il logout.
+    Centralizza il cambio scena per evitare duplicazione nei controller che devono uscire dall'area protetta.
+    Implementa il pattern Navigator (o Coordinator) per la gestione delle schermate.
+    Scopo: Centralizzare i cambi di scena (come il ritorno al Login) per evitare codice duplicato.
+    Ruolo nell'MVC: Solleva i Controller grafici dal compito di caricare le viste. Il Controller dice solo di andare al Login, e questo Navigator gestisce il cambio effettivo della finestra JavaFX.
  *
  * @author ParthEll Team
  * @version 1.0

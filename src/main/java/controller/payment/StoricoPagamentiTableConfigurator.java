@@ -18,9 +18,9 @@ import service.UIFormatsService;
  */
 
 /**
- * Configura la tabella dello storico pagamenti con formattazione importi, promozioni e stato.
- * Centralizza celle e righe personalizzate per mantenere uniforme la resa visiva della vista.
- * Usa factory JavaFX dedicate perché ogni colonna richiede una logica di rendering diversa.
+    Configura la tabella dello storico pagamenti con formattazione importi, promozioni e stato.
+    Centralizza la configurazione delle celle e righe della tabella storico pagamenti. Utilizza: 
+    - Factory Pattern tramite inner-class ImportoCellFactory, PromoCellFactory, StatoCellFactory, StoricoRowFactory per creare celle e righe specializzate con logiche di rendering diverse.
  *
  * @author ParthEll Team
  * @version 1.0

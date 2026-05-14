@@ -8,9 +8,20 @@ package service;
  */
 
 /**
- * Servizio applicativo per adesione e disdetta promozioni.
- * Incapsula la logica di business relativa alle promozioni e mantiene lo storico pagamenti coerente.
- * Implementa un semplice application-service per separare il dominio dal repository.
+    Servizio applicativo per adesione e disdetta promozioni.
+    Incapsula la logica di business relativa alle promozioni e mantiene lo storico pagamenti coerente.
+    Implementa l'Application Service Pattern per la gestione delle promozioni.
+    Scopo: Contenere la logica di business (adesione/disdetta) in un unico punto, separandola dall'interfaccia grafica.
+    Ruolo nell'MVC: M. Fa da ponte. Riceve la richiesta dal Controller, fa i controlli necessari, usa il Repository per salvare i dati e usa il Result Pattern (OperationResult) per restituire al Controller un messaggio chiaro (successo o errore).
+
+    Utilizza:
+    - Repository Pattern tramite TelecomRepository, 
+    Scopo: Nascondere tutta la complessità delle query SQL (JDBC) al resto del programma.
+    Ruolo nell'MVC: M. Agisce come unico punto di accesso al database. I Service interrogano questa classe per salvare o leggere dati, senza mai dover scrivere codice SQL direttamente.
+    - Result Pattern tramite OperationResult per comunicare esito operazioni alla UI.
+    Scopo: Incapsulare in un unico oggetto sia lo stato (successo/fallimento) che il messaggio di risposta, evitando l'uso improprio delle Eccezioni.
+    Ruolo nell'MVC: M. È il "pacchetto di comunicazione" tra il Service e il Controller. Il Service lo riempie, il Controller lo legge per decidere se mostrare un alert verde o rosso all'utente.
+
  *
  * @author ParthEll Team
  * @version 1.0

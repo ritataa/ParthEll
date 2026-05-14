@@ -10,10 +10,12 @@ import javafx.scene.control.Alert;
  */
 
 /**
- * Centralizza la creazione e la visualizzazione degli alert JavaFX.
- * Riduce la duplicazione del codice UI e mantiene uniforme la configurazione dei messaggi.
- * Adotta un piccolo service helper per separare la logica di presentazione dal resto dell'applicazione.
- *
+    Centralizza la creazione e la visualizzazione degli alert JavaFX.
+    Implementa il Service Pattern (Helper Service) per ridurre duplicazione UI e mantenere uniforme la configurazione dei messaggi d'errore/info.
+    Scopo: Evita di dover riscrivere lo stesso codice per i pop-up in ogni schermata.
+    Ruolo nell'MVC: Aiuta i Controller. Il Controller decide cosa dire (es. "Errore Password"), 
+    ma è questo Service che si occupa di come disegnarlo graficamente in modo uniforme.
+
  * @author ParthEll Team
  * @version 1.0
  */
