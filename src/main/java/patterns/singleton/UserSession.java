@@ -22,12 +22,17 @@ public final class UserSession {
      * @version 1.0
      */
 
-    private static final UserSession INSTANCE = new UserSession();
+    private static final UserSession INSTANCE = new UserSession(); // creazione dell'unico oggetto globale di sessione utente
 
-    // Email corrente dell'utente; può essere null se non autenticato
-    private String currentEmail;
-    // Ruolo corrente dell'utente; valori attesi: "cliente", "admin", ecc.
-    private String currentRole;
+    /*  Qui abbiamo in memoria le informazioni dell'utente autenticato, come email e ruolo. 
+        Rendendo la sessione un Singleton, possiamo accedere a queste informazioni da qualsiasi parte del programma senza doverle passare come parametri, 
+        mantenendo lo stato dell'utente in modo centralizzato e coerente.
+    */
+
+    
+    private String currentEmail;    // Email corrente dell'utente; può essere null se non autenticato
+    
+    private String currentRole;     // Ruolo corrente dell'utente; valori attesi: "cliente", "admin", ecc.
 
     private UserSession() {
         // Costruttore privato per implementare il Singleton
