@@ -29,7 +29,7 @@ import java.sql.SQLException;
  */
 public final class DatabaseManager {
 
-    private static final DatabaseConnectionManager CONNECTION_MANAGER = DatabaseConnectionManager.getInstance();
+    private static final DatabaseConnectionManager CONNECTION_MANAGER = DatabaseConnectionManager.getInstance();    // collegamento a DatabaseConnectionManager (che contiene l'URL e i dettagli tecnici)
     private static final DatabaseManager INSTANCE = new DatabaseManager();
 
     private DatabaseManager() {

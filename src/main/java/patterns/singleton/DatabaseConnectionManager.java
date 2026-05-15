@@ -27,16 +27,21 @@ import java.sql.SQLException;
  */
 public final class DatabaseConnectionManager {
 
-    // URL del database SQLite locale usato dall'app.
+    // stringa fissa che dice l'URL del database SQLite locale usato dall'app.
     private static final String DB_URL = "jdbc:sqlite:parth.db";
 
+    // instanza statica e finale: garantisce che ci sia solo un'istanza di DatabaseConnectionManager.
     // Singleton eager: istanza unica creata al caricamento della classe (thread-safe per design).
     private static final DatabaseConnectionManager INSTANCE = new DatabaseConnectionManager();
 
+
+    // L'oggetto INSTANCE legge il testo contenuto in DB_URL  per sapere esattamente quale file deve aprire quando il resto 
+    // del programma gli chiede una connessione.
+
     /**
-     * Costruttore privato: è la regola d'oro del Singleton (impedisce l'uso di "new" dall'esterno).
-     * Non è vuoto perché viene sfruttato per il "setup iniziale": siccome viene eseguito 
-     * una sola volta al lancio dell'app, è il punto perfetto per caricare e verificare 
+     * Costruttore privato che impedisce l'uso di "new" dall'esterno.
+     * Non è vuoto perché viene sfruttato per il setup iniziale: siccome viene eseguito 
+     * una sola volta al lancio dell'app, viene usato per caricare e verificare 
      * l'esistenza del driver SQLite, fallendo subito in caso di problemi.
      */
     private DatabaseConnectionManager() {
@@ -52,6 +57,7 @@ public final class DatabaseConnectionManager {
     /**
      * Ritorna l'istanza unica globale di DatabaseConnectionManager.
      * Garantisce a tutti i client la stessa istanza (mai null).
+     * Non tocca il database.
      * 
      * @return l'unica istanza del Singleton (non-null)
      */
@@ -63,6 +69,8 @@ public final class DatabaseConnectionManager {
     /**
      * Ottiene una nuova connessione al database SQLite.
      * Non ritorna mai null: lancia SQLException se la connessione fallisce.
+     * 
+     * Usa l'indirizzo DB_URL per connettersi al database locale "parth.db".
      * 
      * @return una Connection valida al database SQLite (non-null)
      * @throws SQLException se il database è inaccessibile, corrotto, o l'URL è malformato
