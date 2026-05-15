@@ -17,6 +17,11 @@ import java.sql.SQLException;
  * garantendo che esista una sola istanza durante l'intero ciclo di vita dell'applicazione.
  * Implementa il pattern con eager initialization per garantire thread-safety senza sincronizzazione.
  * 
+ * Separazione delle responsabilità:
+ *  DatabaseConnectionManager gestisce i dettagli tecnici del driver e dell'URL SQLite. 
+ *  DatabaseManager fornisce un'interfaccia pulita ai Repository.
+ * Se un domani decidessimo di passare da SQLite a un database MySQL, dovremmo modificare solo il file tecnico (ConnectionManager)
+ * 
  * @author ParthEll Team
  * @version 1.0
  */
@@ -29,8 +34,10 @@ public final class DatabaseConnectionManager {
     private static final DatabaseConnectionManager INSTANCE = new DatabaseConnectionManager();
 
     /**
-     * Costruttore privato che carica il driver JDBC SQLite al bootstrap della classe.
-     * Fallisce velocemente se il driver non è disponibile nel classpath.
+     * Costruttore privato: è la regola d'oro del Singleton (impedisce l'uso di "new" dall'esterno).
+     * Non è vuoto perché viene sfruttato per il "setup iniziale": siccome viene eseguito 
+     * una sola volta al lancio dell'app, è il punto perfetto per caricare e verificare 
+     * l'esistenza del driver SQLite, fallendo subito in caso di problemi.
      */
     private DatabaseConnectionManager() {
         try {

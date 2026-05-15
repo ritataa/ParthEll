@@ -19,6 +19,11 @@ import java.sql.SQLException;
  * gestione del driver. Implementa il pattern Singleton (eager) per fornire
  * un'unica istanza condivisa tra i client.
  *
+ * Separazione delle responsabilità:
+ *  DatabaseConnectionManager gestisce i dettagli tecnici del driver e dell'URL SQLite. 
+ *  DatabaseManager fornisce un'interfaccia pulita ai Repository.
+ * Se un domani decidessimo di passare da SQLite a un database MySQL, dovremmo modificare solo il file tecnico (ConnectionManager)
+ * 
  * @author ParthEll Team
  * @version 1.0
  */
