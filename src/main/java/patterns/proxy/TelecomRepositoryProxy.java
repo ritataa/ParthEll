@@ -7,6 +7,7 @@ import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
 import patterns.builder.Abbonato;
+import patterns.factory.AbbonatoFactory;
 import patterns.state.Pagamento;
 import service.TelecomRepository;
 
@@ -175,52 +176,10 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         return target.findAllPianiTariffari();
     }
 
-    /**
-     * Registra un cliente con i soli dati base dopo averli validati e ripuliti.
-     * Lancia {@link IllegalArgumentException} se uno dei campi obbligatori e' vuoto.
-     *
-     * @param email deve contenere un indirizzo non vuoto.
-     * @param password deve contenere una password non vuota.
-     * @param nome deve contenere il nome del cliente.
-     * @param cognome deve contenere il cognome del cliente.
-     * @param residenza deve contenere la residenza del cliente.
-     * @param numeroTelefono deve contenere un numero di telefono non vuoto.
-     * @param pianoTariffario deve contenere un piano tariffario non vuoto.
-     * @throws IllegalArgumentException se uno dei parametri obbligatori e' nullo o vuoto.
-     */
-    // Sicurezza: @Override conferma che sto ridefinendo la firma di registerCliente() dichiarata in TelecomRepository.
-    @Override
-    public void registerCliente(
-        String email,
-        String password,
-        String nome,
-        String cognome,
-        String residenza,
-        String numeroTelefono,
-        String pianoTariffario
-    ) {
-        String normalizedEmail = requireText(email, "Email");
-        String normalizedPassword = requireText(password, "Password");
-        String normalizedNome = requireText(nome, "Nome");
-        String normalizedCognome = requireText(cognome, "Cognome");
-        String normalizedResidenza = requireText(residenza, "Residenza");
-        String normalizedNumeroTelefono = requireText(numeroTelefono, "Numero di telefono");
-        String normalizedPiano = requireText(pianoTariffario, "Piano tariffario");
-
-        log("Registrazione cliente base per " + normalizedEmail);
-        target.registerCliente(
-            normalizedEmail,
-            normalizedPassword,
-            normalizedNome,
-            normalizedCognome,
-            normalizedResidenza,
-            normalizedNumeroTelefono,
-            normalizedPiano
-        );
-    }
 
     /**
      * Registra un cliente con conto, validando i campi obbligatori prima della delega.
+     * cliente con tipo di conto (es. conto corrente, prepagato associato).
      * Lancia {@link IllegalArgumentException} se un dato richiesto non e' presente.
      *
      * @param email deve contenere un indirizzo non vuoto.
@@ -255,6 +214,19 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String normalizedPiano = requireText(pianoTariffario, "Piano tariffario");
         String normalizedConto = requireText(conto, "Conto");
 
+        // --- INIZIO INTEGRAZIONE FACTORY E BUILDER PATTERN ---
+        // Prima di salvare sul DB, usiamo la Factory per creare e validare l'oggetto in memoria.
+        // Questo fa scattare l'ATTO 1-2 (Factory) e l'ATTO 1-3 (Builder) nel terminale
+        AbbonatoFactory.createAbbonato(
+            normalizedPiano, 
+            normalizedNome, 
+            normalizedCognome, 
+            normalizedEmail, 
+            normalizedResidenza, 
+            normalizedNumeroTelefono
+        );
+        // --- FINE INTEGRAZIONE ---
+
         log("Registrazione cliente con conto per " + normalizedEmail);
         target.registerCliente(
             normalizedEmail,
@@ -270,6 +242,7 @@ public class TelecomRepositoryProxy extends TelecomRepository {
 
     /**
      * Registra un cliente con conto e dati carta, controllando i vincoli minimi di input.
+     * registrazione completa con dati di pagamento.
      * Lancia {@link IllegalArgumentException} se un campo obbligatorio e' mancante o incoerente.
      *
      * @param email deve contenere un indirizzo non vuoto.
@@ -311,6 +284,20 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String normalizedNumeroTelefono = requireText(numeroTelefono, "Numero di telefono");
         String normalizedPiano = requireText(pianoTariffario, "Piano tariffario");
         String normalizedConto = requireText(conto, "Conto");
+
+       // --- INIZIO INTEGRAZIONE FACTORY E BUILDER PATTERN ---
+        // Prima di salvare sul DB, usiamo la Factory per creare e validare l'oggetto in memoria.
+        // Questo fa scattare l'ATTO 1-2 (Factory) e l'ATTO 1-3 (Builder) nel terminale
+        AbbonatoFactory.createAbbonato(
+            normalizedPiano, 
+            normalizedNome, 
+            normalizedCognome, 
+            normalizedEmail, 
+            normalizedResidenza, 
+            normalizedNumeroTelefono
+        );
+        // --- FINE INTEGRAZIONE ---
+
         String normalizedNumeroCarta = requireText(numeroCarta, "Numero carta");
         String normalizedScadenzaCarta = requireText(scadenzaCarta, "Scadenza carta");
         String normalizedCvvCarta = requireText(cvvCarta, "CVV carta");

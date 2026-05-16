@@ -48,7 +48,7 @@ public enum TipoPiano {
         /**
          * Converte una stringa libera in un valore `TipoPiano` valido.
          *
-         * @param value stringa di input (es. "base", "plus", "premium"); non può essere null.
+         * @param value stringa di input (es. "base", "plus"); non può essere null.
          * @return il `TipoPiano` corrispondente.
          * @throws IllegalArgumentException se `value` è null o non riconosciuto.
          */
@@ -62,8 +62,8 @@ public enum TipoPiano {
 
         // Accetto alias comuni per maggiore tolleranza verso dati esterni/DB legacy.
         return switch (norm) {
-            case "base", "basic" -> BASE;
-            case "plus", "premium" -> PLUS;
+            case "base" -> BASE;
+            case "plus" -> PLUS;
             default -> throw new IllegalArgumentException("Tipo di abbonato non riconosciuto: " + value);
         };
     }

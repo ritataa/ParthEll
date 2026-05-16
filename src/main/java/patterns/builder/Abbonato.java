@@ -4,14 +4,12 @@ import model.TipoPiano;
 import model.conto.Conto;
 import model.conto.ContoFisso;
 /*
- LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
+* LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
 
- Questo file utilizza i seguenti tag Javadoc:
- - @author / @version: Tracciano paternità e manutenzione della classe.
- - @param: Definisce i vincoli e il significato degli input dei metodi pubblici.
- - @return: Definisce l'output garantito (inclusa la null-safety quando applicabile).
-
- NOTE: La legenda include solo i tag effettivamente impiegati in questa classe.
+* Questo file utilizza i seguenti tag Javadoc:
+* - @author / @version: Tracciano paternità e manutenzione della classe.
+ * - @param: Definisce i vincoli e il significato degli input dei metodi pubblici.
+ * - @return: Definisce l'output garantito (inclusa la null-safety quando applicabile).
 */
 
 public class Abbonato {

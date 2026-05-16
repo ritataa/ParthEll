@@ -17,7 +17,7 @@ public final class UserSession {
      * Ruolo architetturale: espone uno storage in-memory di breve durata
      * per informazioni di autenticazione/ruolo, accessibile globalmente tramite
      * Singleton (eager).
-     *
+     * 
      * @author ParthEll Team
      * @version 1.0
      */
