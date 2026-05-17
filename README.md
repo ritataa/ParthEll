@@ -58,9 +58,8 @@ Pattern GoF:
 * Simple Factory: [patterns.factory.AbbonatoFactory](src/main/java/patterns/factory/AbbonatoFactory.java)
 * Builder: [model.Abbonato.Builder](src/main/java/model/Abbonato.java)
 * Strategy: [patterns.strategy.PaymentStrategy](src/main/java/patterns/strategy/PaymentStrategy.java) con [CashPaymentStrategy](src/main/java/patterns/strategy/CashPaymentStrategy.java), [CardPaymentStrategy](src/main/java/patterns/strategy/CardPaymentStrategy.java), [BancomatPaymentStrategy](src/main/java/patterns/strategy/BancomatPaymentStrategy.java) e contesto [PaymentContext](src/main/java/patterns/strategy/PaymentContext.java)
-* Command (UI): [patterns.command.ui.PaymentCommand](src/main/java/patterns/command/ui/PaymentCommand.java) con i command concreti per i pagamenti in [src/main/java/patterns/command/ui](src/main/java/patterns/command/ui)
+
 * Command (DB): [patterns.command.db.DatabaseCommand](src/main/java/patterns/command/db/DatabaseCommand.java) con i command concreti in [src/main/java/patterns/command/db](src/main/java/patterns/command/db)
- * Command (DB): [patterns.command.db.DatabaseCommand](src/main/java/patterns/command/db/DatabaseCommand.java) con i command concreti in [src/main/java/patterns/command/db](src/main/java/patterns/command/db)
 * State: [patterns.state.Pagamento](src/main/java/patterns/state/Pagamento.java) con stati in [src/main/java/patterns/state/impl](src/main/java/patterns/state/impl)
 * Facade: [patterns.facade.AuthFacade](src/main/java/patterns/facade/AuthFacade.java), [patterns.facade.DatabaseFacade](src/main/java/patterns/facade/DatabaseFacade.java)
 * Proxy: [patterns.proxy.TelecomRepositoryProxy](src/main/java/patterns/proxy/TelecomRepositoryProxy.java) come intermediario verso [service.TelecomRepository](src/main/java/service/TelecomRepository.java), con controlli base, normalizzazione dei parametri e logging leggero
