@@ -26,9 +26,6 @@ import model.Utilizzo;
 import model.conto.ContoFisso;
 import model.conto.ContoRicaricabile;
 import patterns.builder.Abbonato;
-import patterns.command.ui_TemplateM.BancomatPaymentCommand;
-import patterns.command.ui_TemplateM.CardPaymentCommand;
-import patterns.command.ui_TemplateM.CashPaymentCommand;
 import patterns.facade.AuthFacade;
 import patterns.proxy.TelecomRepositoryProxy;
 import patterns.singleton.UserSession;
@@ -436,8 +433,9 @@ public class ClienteController {
      */
     @FXML
     public void handlePagamentoContanti(ActionEvent event) {
+        System.out.println("[ATTO 4 - 1. CLIENTE CONTROLLER] L'utente ha scelto Contanti nel Wallet. Avvio il flusso di ricarica/pagamento.");
         // Avvia il flusso di pagamento con strategia specifica per contanti.
-        gestisciRichiestaPagamento("Contanti", new PagamentoContantiRunnable());
+        gestisciRichiestaPagamento("Contanti");
     }
 
     /**
@@ -451,7 +449,7 @@ public class ClienteController {
     public void handlePagamentoCarta(ActionEvent event) {
         System.out.println("[ATTO 4 - 1. CLIENTE CONTROLLER] L'utente ha scelto Carta nel Wallet. Avvio il flusso di ricarica/pagamento.");
         // Avvia il flusso di pagamento con strategia specifica per carta.
-        gestisciRichiestaPagamento("Carta", new PagamentoCartaRunnable());
+        gestisciRichiestaPagamento("Carta");
     }
 
     /**
@@ -463,15 +461,16 @@ public class ClienteController {
      */
     @FXML
     public void handlePagamentoBancomat(ActionEvent event) {
+        System.out.println("[ATTO 4 - 1. CLIENTE CONTROLLER] L'utente ha scelto Bancomat nel Wallet. Avvio il flusso di ricarica/pagamento.");
         // Avvia il flusso di pagamento con strategia specifica per bancomat/POS.
-        gestisciRichiestaPagamento("Bancomat", new PagamentoBancomatRunnable());
+        gestisciRichiestaPagamento("Bancomat");
     }
 
     /**
      * Il "Filtro" Polimorfico: decide se aprire l'interfaccia grafica dei pagamenti
      * o se scalare direttamente i soldi dal conto ricaricabile.
      */
-    private void gestisciRichiestaPagamento(String metodoPagamento, Runnable apriFinestraPagamentoCommand) {
+    private void gestisciRichiestaPagamento(String metodoPagamento) { // Modificata la firma (rimosso il Runnable)
         System.out.println("[ATTO 4 - 2. CLIENTE CONTROLLER] Instrado la richiesta su ricarica immediata o pagamento storico in base al tipo conto.");
         String email = UserSession.getInstance().getCurrentEmail();
         Abbonato abbonatoLoggato = repository.findAbbonatoByEmail(email); 
@@ -497,8 +496,14 @@ public class ClienteController {
 
         // 1. IL POLIMORFISMO IN AZIONE: Chiediamo al conto se serve la carta di credito/contanti
         if (conto.richiedePagamentoImmediato(importoDaPagare)) {
-            // 2A. Solo conto ricaricabile con saldo insufficiente: apri l'interfaccia di pagamento
-            apriFinestraPagamentoCommand.run(); 
+            // 2A. Solo conto ricaricabile con saldo insufficiente: apre direttamente lo schermo corretto
+            switch (metodoPagamento) {
+        case "Contanti" -> apriSchermataPagamentoContanti(importoDaPagare);
+        case "Carta" -> apriSchermataPagamentoCarta(importoDaPagare);
+        case "Bancomat" -> apriSchermataPagamentoBancomat(importoDaPagare);
+        default -> // cosa fare se arriva una stringa sbagliata
+            System.err.println("Metodo di pagamento non riconosciuto: " + metodoPagamento);
+}
         } else {
             // 2B. Conto fisso (addebito differito) o ricaricabile con fondi: aggiorna direttamente lo stato pagamento
             conto.addebita(importoDaPagare);
@@ -853,11 +858,6 @@ public class ClienteController {
         alertManager.show(alertType, title, message);
     }
 
-    private double getTotaleMensileCorrente() {
-        // Totale corrente usato dai comandi pagamento (contanti/carta/bancomat).
-        String email = UserSession.getInstance().getCurrentEmail();
-        return dataService.calcolaTotaleMensile(email);
-    }
 
     /**
      * Apre il dialog di pagamento in contanti per il totale richiesto.
@@ -948,33 +948,6 @@ public class ClienteController {
 
         caricaStoricoPagamenti();
         return true;
-    }
-
-    // Esegue il comando di pagamento contanti.
-    private class PagamentoContantiRunnable implements Runnable {
-        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
-        @Override
-        public void run() {
-            new CashPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
-        }
-    }
-
-    // Esegue il comando di pagamento carta.
-    private class PagamentoCartaRunnable implements Runnable {
-        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
-        @Override
-        public void run() {
-            new CardPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
-        }
-    }
-
-    // Esegue il comando di pagamento bancomat.
-    private class PagamentoBancomatRunnable implements Runnable {
-        // Sicurezza: obbliga Java a verificare che sto davvero implementando run() dell'interfaccia Runnable, evitando errori di battitura.
-        @Override
-        public void run() {
-            new BancomatPaymentCommand(ClienteController.this, getTotaleMensileCorrente()).execute();
-        }
     }
 
     // Supplier riusabile: imposta la conferma a true e notifica esito positivo.
