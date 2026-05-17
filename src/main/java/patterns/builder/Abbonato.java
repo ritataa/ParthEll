@@ -14,7 +14,7 @@ import model.conto.ContoFisso;
 
 /**
      * Rappresenta un abbonato costruito tramite il pattern Builder.
-     * Il Builder separa la costruzione dell'oggetto dalla sua rappresentazione,
+     * Il Builder separa la costruzione dell'oggetto (Builder) dalla sua rappresentazione (Abbonato),
      * permettendo configurazioni fluenti e valori di default per il `Conto`.
      *
      * @author ParthEll Team
@@ -113,11 +113,15 @@ public class Abbonato {
     public void setIntestatarioCarta(String intestatarioCarta) { this.intestatarioCarta = intestatarioCarta; } // assegna l'intestatario
 
     /**
-     * Restituisce una rappresentazione testuale compatta dell'oggetto Abbonato.
-     * Esempio: "Abbonato{nome='Mario', cognome='Rossi', email='m@example.com', pianoTariffario='PLUS', conto=ContoFisso@1a2b3c}".
-     * Utilità: usato per logging e debug quando si stampa o si ispeziona l'oggetto.
-     * Avvertenza: non include dati sensibili completi (es. CVV); per evitare di inserire informazioni riservate.
-     * @return stringa compatta che descrive i campi principali dell'abbonato
+     * Fornisce la "carta d'identità" dell'oggetto per operazioni di logging e debugging.
+     * * Sovrascrive (@Override) il comportamento di default di Java, che altrimenti 
+     * stamperebbe un incomprensibile indirizzo di memoria (es. Abbonato@7a81197d).
+     * Il metodo concatena le variabili di stato principali in una stringa leggibile, 
+     * permettendo di ispezionare facilmente l'oggetto tramite System.out.println().
+     * * ATTENZIONE ALLA SICUREZZA: Per policy di Data Protection, i dati sensibili 
+     * (come CVV e numero di carta) sono stati intenzionalmente omessi.
+     *
+     * @return Stringa formattata e sicura contenente lo stato corrente dell'abbonato.
      */
     @Override
     public String toString() {
