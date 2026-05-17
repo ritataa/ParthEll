@@ -12,6 +12,14 @@ import model.conto.ContoFisso;
  * - @return: Definisce l'output garantito (inclusa la null-safety quando applicabile).
 */
 
+/**
+     * Rappresenta un abbonato costruito tramite il pattern Builder.
+     * Il Builder separa la costruzione dell'oggetto dalla sua rappresentazione,
+     * permettendo configurazioni fluenti e valori di default per il `Conto`.
+     *
+     * @author ParthEll Team
+     * @version 1.0
+     */
 /*
  * SCELTA ARCHITETTURALE: FLUENT BUILDER 
  * Utilizziamo l'implementazione "Fluent" tramite Static Inner Class e non il pattern 
@@ -38,14 +46,7 @@ public class Abbonato {
     private String cvvCarta;
     private String intestatarioCarta;
 
-    /**
-     * Rappresenta un abbonato costruito tramite il pattern Builder.
-     * Il Builder separa la costruzione dell'oggetto dalla sua rappresentazione,
-     * permettendo configurazioni fluenti e valori di default per il `Conto`.
-     *
-     * @author ParthEll Team
-     * @version 1.0
-     */
+    
     // Costruttore completo con Conto
     private Abbonato(String nome, String cognome, String email, String residenza,       //privato perché vogliamo forzare l'uso del Builder per la creazione di Abbonati, evitando costruttori pubblici con molti parametri.
                    String numeroTelefono, TipoPiano pianoTariffario, Conto conto) {
