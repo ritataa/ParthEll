@@ -71,7 +71,12 @@ public final class DatabaseSeeder {
                 String email = emailResultSet.getString("email");
                 countStatement.setString(1, email);
                 try (ResultSet countResultSet = countStatement.executeQuery()) {
-                    int count = countResultSet.next() ? countResultSet.getInt(1) : 0;
+                    int count;
+                    if (countResultSet.next()) {
+                        count = countResultSet.getInt(1);
+                    } else {
+                        count = 0;
+                    }
                     if (count > 0) {
                         continue;
                     }

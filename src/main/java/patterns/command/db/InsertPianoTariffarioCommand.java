@@ -99,8 +99,16 @@ public final class InsertPianoTariffarioCommand implements DatabaseCommand<Integ
             }
             
             // I database (come SQLite) spesso non hanno i campi "vero/falso", quindi li converto in numeri: 1 se vero, 0 se falso.
-            statement.setInt(4, illimitatoMinuti ? 1 : 0);
-            statement.setInt(5, illimitatoGiga ? 1 : 0);
+            if (illimitatoMinuti) {
+                statement.setInt(4, 1);
+            } else {
+                statement.setInt(4, 0);
+            }
+            if (illimitatoGiga) {
+                statement.setInt(5, 1);
+            } else {
+                statement.setInt(5, 0);
+            }
             
             statement.setDouble(6, costoMensile);
             

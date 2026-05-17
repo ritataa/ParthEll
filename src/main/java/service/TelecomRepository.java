@@ -133,9 +133,12 @@ public class TelecomRepository {
                 // Ripristina il tipo di conto leggendo il valore salvato nel record.
                 String contoDbValue = resultSet.getString("conto");
                 double saldo = resultSet.getDouble("saldo");
-                Conto conto = "ricaricabile".equalsIgnoreCase(contoDbValue)
-                    ? new ContoRicaricabile(Math.max(0.0, saldo))
-                    : new ContoFisso();
+                Conto conto;
+                if ("ricaricabile".equalsIgnoreCase(contoDbValue)) {
+                    conto = new ContoRicaricabile(Math.max(0.0, saldo));
+                } else {
+                    conto = new ContoFisso();
+                }
 
                 return Abbonato.builder()
                     .nome(resultSet.getString("nome"))
@@ -805,7 +808,12 @@ public class TelecomRepository {
              PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
             countStatement.setString(1, email);
             try (ResultSet rs = countStatement.executeQuery()) {
-                int count = rs.next() ? rs.getInt(1) : 0;
+                int count;
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                } else {
+                    count = 0;
+                }
                 if (count > 0) {
                     return;
                 }
@@ -1151,7 +1159,12 @@ public class TelecomRepository {
         String sql = "SELECT COUNT(*) FROM abbonato";
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
-            int count = resultSet.next() ? resultSet.getInt(1) : 0;
+            int count;
+            if (resultSet.next()) {
+                count = resultSet.getInt(1);
+            } else {
+                count = 0;
+            }
             // Genero un numero progressivo semplice per il nuovo cliente.
             return "39" + String.format("%08d", count + 1);
         }
@@ -1177,6 +1190,10 @@ public class TelecomRepository {
 
     private Integer getNullableInteger(ResultSet resultSet, String columnName) throws SQLException {
         int value = resultSet.getInt(columnName);
-        return resultSet.wasNull() ? null : value;
+        if (resultSet.wasNull()) {
+            return null;
+        } else {
+            return value;
+        }
     }
 }

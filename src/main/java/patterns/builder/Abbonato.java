@@ -19,7 +19,8 @@ public class Abbonato {
     private String residenza;
     private String numeroTelefono;
     private TipoPiano pianoTariffario;
-    private Conto conto;
+    private Conto conto;    // POLIMORFISMO PER DATI: Conto può essere ContoFisso o ContoRicaricabile, ma Abbonato non si preoccupa di quale sia. 
+                            // Etichetta "Conto", ma può essere qualsiasi implementazione di Conto (ContoFisso o ContoRicaricabile).
     private String numeroCarta;
     private String scadenzaCarta;
     private String cvvCarta;
@@ -42,11 +43,11 @@ public class Abbonato {
         this.residenza = residenza;
         this.numeroTelefono = numeroTelefono;
         this.pianoTariffario = pianoTariffario;
-        // Se non viene fornito alcun conto, usiamo un ContoFisso di default
+        // Se qualcuno crea un Abbonato e si dimentica di passargli un conto, il sistema gli assegna automaticamente un ContoFisso
         if (conto != null) {
             this.conto = conto;
         } else {
-            this.conto = new ContoFisso();
+            this.conto = new ContoFisso(); 
         }
     }
 

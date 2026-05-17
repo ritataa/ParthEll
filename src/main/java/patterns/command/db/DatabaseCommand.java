@@ -19,7 +19,7 @@ import java.sql.SQLException;
  * @author ParthEll Team
  * @version 1.0
  */
-public interface DatabaseCommand<T> {
+public interface DatabaseCommand<T> {   //POLIMORFISMO PER DATI: DatabaseCommand prende forme diverse adattandosi ai dati che deve restituire (T è generico, può essere qualsiasi tipo).
 
     /**
      * Esegue il comando sul database usando la connessione fornita.

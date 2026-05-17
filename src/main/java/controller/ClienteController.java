@@ -763,7 +763,13 @@ public class ClienteController {
         }
 
         if (numeroAttualeLabel != null) {
-            numeroAttualeLabel.setText(utilizzo.getNumero() == null || utilizzo.getNumero().isBlank() ? "-" : utilizzo.getNumero());
+            String numeroText;
+            if (utilizzo.getNumero() == null || utilizzo.getNumero().isBlank()) {
+                numeroText = "-";
+            } else {
+                numeroText = utilizzo.getNumero();
+            }
+            numeroAttualeLabel.setText(numeroText);
         }
         if (chiamateUsateLabel != null) {
             chiamateUsateLabel.setText(String.valueOf(utilizzo.getChiamate()));
@@ -799,7 +805,13 @@ public class ClienteController {
 
         if (promozioniAttiveLabel != null) {
             String promo = utilizzo.getPromo();
-            promozioniAttiveLabel.setText((promo == null || promo.isBlank()) ? "Nessuna" : promo);
+            String promoText;
+            if (promo == null || promo.isBlank()) {
+                promoText = "Nessuna";
+            } else {
+                promoText = promo;
+            }
+            promozioniAttiveLabel.setText(promoText);
         }
     }
 
