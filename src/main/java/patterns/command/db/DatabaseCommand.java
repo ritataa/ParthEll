@@ -30,5 +30,6 @@ public interface DatabaseCommand<T> {   //POLIMORFISMO PER DATI: DatabaseCommand
      * @return risultato dell'operazione, secondo il contratto dell'implementazione concreta.
      * @throws SQLException se l'accesso al database fallisce o la query non puo' essere eseguita.
      */
-    T execute(Connection connection) throws SQLException;
+    T execute(Connection connection) throws SQLException; // Usiamo <T> e non void (usato nel Command classico) per permettere alla stessa interfaccia di gestire sia scritture (UPDATE/DELETE, restituendo la classe 'Void'), 
+                                                          // sia letture (SELECT, restituendo String, List o entità di dominio)
 }
