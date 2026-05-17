@@ -12,6 +12,18 @@ import model.conto.ContoFisso;
  * - @return: Definisce l'output garantito (inclusa la null-safety quando applicabile).
 */
 
+/*
+ * SCELTA ARCHITETTURALE: FLUENT BUILDER 
+ * Utilizziamo l'implementazione "Fluent" tramite Static Inner Class e non il pattern 
+ * classico della GoF (con Interfacce e Director). Questo perché non abbiamo la 
+ * necessità di creare rappresentazioni diverse dell'oggetto usando lo stesso processo di costruzione. 
+ * Il nostro obiettivo è risolvere il problema dei costruttori telescopici (troppi parametri opzionali), 
+ * per garantire leggibilità e sicurezza.
+ * 
+ * Con quello classico avremmo dovuto creare 4 File/Entità: Product, Builder (Interfaccia), ConcreteBuilder, Director.
+ * Qui invece creiamo un file: La classe principale (Product) che ospita una Static Inner Class.
+ */
+
 public class Abbonato {
     private String nome;
     private String cognome;
@@ -35,7 +47,7 @@ public class Abbonato {
      * @version 1.0
      */
     // Costruttore completo con Conto
-    private Abbonato(String nome, String cognome, String email, String residenza,
+    private Abbonato(String nome, String cognome, String email, String residenza,       //privato perché vogliamo forzare l'uso del Builder per la creazione di Abbonati, evitando costruttori pubblici con molti parametri.
                    String numeroTelefono, TipoPiano pianoTariffario, Conto conto) {
         this.nome = nome;
         this.cognome = cognome;
@@ -50,6 +62,8 @@ public class Abbonato {
             this.conto = new ContoFisso(); 
         }
     }
+
+    // GETTER E SETTER: Forniscono accesso controllato ai campi dell'abbonato. Alcuni campi (es. conto) garantiscono non-null restituendo un default se necessario.
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; } // assegna il nome (può essere null)
@@ -97,6 +111,13 @@ public class Abbonato {
     public String getIntestatarioCarta() { return intestatarioCarta; } // ritorna l'intestatario della carta
     public void setIntestatarioCarta(String intestatarioCarta) { this.intestatarioCarta = intestatarioCarta; } // assegna l'intestatario
 
+    /**
+     * Restituisce una rappresentazione testuale compatta dell'oggetto Abbonato.
+     * Esempio: "Abbonato{nome='Mario', cognome='Rossi', email='m@example.com', pianoTariffario='PLUS', conto=ContoFisso@1a2b3c}".
+     * Utilità: usato per logging e debug quando si stampa o si ispeziona l'oggetto.
+     * Avvertenza: non include dati sensibili completi (es. CVV); per evitare di inserire informazioni riservate.
+     * @return stringa compatta che descrive i campi principali dell'abbonato
+     */
     @Override
     public String toString() {
         // stringa compatta per logging/debug
@@ -109,9 +130,15 @@ public class Abbonato {
                 '}';
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
+    /**
+     * Classe statica interna Builder per costruire istanze di Abbonato.
+     * Il Builder permette di configurare solo i campi desiderati, con valori di default per quelli non impostati (es. Conto).
+     * Utilizzo: Abbonato abbonato = Abbonato.builder().nome("Mario").cognome("Rossi").email("m@example.com").build(); 
+     * 
+     * static = la classe Builder esiste indipendentemente da qualsiasi istanza di Abbonato, non ha bisogno di un riferimento a un Abbonato per essere usata.
+     * Se non fosse static, per usarla dovremmo prima creare un'istanza di Abbonato (es. new Abbonato().new Builder()), il che è controintuitivo perché il Builder serve proprio a creare l'Abbonato.
+     * final = costante e impedisce l'ereditabilità della classe Builder, garantendo che la struttura del Builder non possa essere modificata o estesa da altre classi.
+     */
 
     public static final class Builder {
         private String nome;
@@ -223,5 +250,14 @@ public class Abbonato {
             abbonato.intestatarioCarta = this.intestatarioCarta;
             return abbonato;
         }
+    }
+
+    /**
+     * Metodo creato per comodità ed estetica, permette di iniziare la costruzione di un Abbonato con una sintassi fluida: 
+     * Abbonato a = Abbonato.builder().nome("Mario").build();
+     */
+
+    public static Builder builder() {
+        return new Builder();
     }
 }
