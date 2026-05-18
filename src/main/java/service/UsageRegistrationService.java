@@ -1,5 +1,7 @@
 package service;
 
+import patterns.proxy.ITelecomRepository;
+
 /*
  * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
  * @param: descrive i vincoli e il significato degli input dei metodi pubblici.
@@ -17,9 +19,9 @@ package service;
  */
 public class UsageRegistrationService {
 
-    private final TelecomRepository repository;
+    private final ITelecomRepository repository;
 
-    public UsageRegistrationService(TelecomRepository repository) {
+    public UsageRegistrationService(ITelecomRepository repository) {
         this.repository = repository;
     }
 

@@ -17,6 +17,7 @@ import model.conto.Conto;
 import model.conto.ContoFisso;
 import model.conto.ContoRicaricabile;
 import patterns.builder.Abbonato;
+import patterns.proxy.ITelecomRepository;
 import patterns.singleton.DatabaseManager;
 import patterns.state.Pagamento;
 
@@ -43,7 +44,7 @@ import patterns.state.Pagamento;
  * @author ParthEll Team
  * @version 1.0
  */
-public class TelecomRepository {
+public class TelecomRepository implements ITelecomRepository {
 
     private final DatabaseManager databaseManager = DatabaseManager.getInstance();
 
@@ -56,6 +57,7 @@ public class TelecomRepository {
      * @return "admin", "cliente" o null se nessuna corrispondenza è valida.
      * @throws RuntimeException se l'accesso al database fallisce.
      */
+    @Override
     public String authenticate(String email, String password) {
         String adminSql = "SELECT 1 FROM amministratore WHERE email = ? AND password = ?";
         if (exists(adminSql, email, password)) {
@@ -76,6 +78,7 @@ public class TelecomRepository {
      * @return lista completa degli abbonati presenti a database.
      * @throws RuntimeException se la lettura JDBC fallisce.
      */
+    @Override
     public List<Abbonato> findAllAbbonati() {
         List<Abbonato> result = new ArrayList<>();
         String sql = """
@@ -111,6 +114,7 @@ public class TelecomRepository {
      * @return l'abbonato trovato oppure null se assente.
      * @throws RuntimeException se il database non risponde correttamente.
      */
+    @Override
     public Abbonato findAbbonatoByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -165,6 +169,7 @@ public class TelecomRepository {
      * @return lista di utilizzi ordinata per numero telefonico.
      * @throws RuntimeException se la query di aggregazione fallisce.
      */
+    @Override
     public List<Utilizzo> findAllUtilizzi() {
         List<Utilizzo> result = new ArrayList<>();
         String sql = """
@@ -211,6 +216,7 @@ public class TelecomRepository {
      * @return lista completa delle promozioni disponibili.
      * @throws RuntimeException se la lettura del catalogo fallisce.
      */
+    @Override
     public List<Promozione> findAllPromozioni() {
         List<Promozione> result = new ArrayList<>();
         String sql = "SELECT nome, costo, descrizione FROM promozione ORDER BY nome";
@@ -237,6 +243,7 @@ public class TelecomRepository {
      * @return lista dei nomi piano usabili dall'interfaccia.
      * @throws RuntimeException se la query fallisce.
      */
+    @Override
     public List<String> findAllPianiTariffari() {
         List<String> result = new ArrayList<>();
         String sql = "SELECT nome FROM piano_tariffario ORDER BY nome";
@@ -262,6 +269,7 @@ public class TelecomRepository {
      * @param cognome cognome del cliente.
      * @throws RuntimeException se l'inserimento o la sincronizzazione falliscono.
      */
+    @Override
     public void addCliente(String email, String password, String nome, String cognome) {
         String sql = """
             INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo)
@@ -306,6 +314,7 @@ public class TelecomRepository {
      * @param intestatarioCarta intestatario carta opzionale.
      * @throws RuntimeException se un vincolo viene violato o il database fallisce.
      */
+    @Override
     public void registerCliente(
         String email,
         String password,
@@ -392,6 +401,7 @@ public class TelecomRepository {
      * @param conto tipo conto valido.
      * @throws RuntimeException se i controlli di registrazione falliscono.
      */
+    @Override
     public void registerCliente(
         String email,
         String password,
@@ -417,6 +427,7 @@ public class TelecomRepository {
      * @param pianoTariffario piano tariffario esistente.
      * @throws RuntimeException se i controlli di registrazione falliscono.
      */
+    @Override
     public void registerCliente(
         String email,
         String password,
@@ -437,6 +448,7 @@ public class TelecomRepository {
      * @return true se l'associazione viene inserita, false se era già presente.
      * @throws RuntimeException se la promozione non esiste o il database fallisce.
      */
+    @Override
     public boolean aderisciPromozione(String email, String nomePromozione) {
         String checkPromoSql = "SELECT 1 FROM promozione WHERE nome = ?";
         String insertSql = "INSERT OR IGNORE INTO abbonato_promozione(email, promozione_nome) VALUES (?, ?)";
@@ -469,6 +481,7 @@ public class TelecomRepository {
      * @return true se almeno una riga è stata rimossa, false altrimenti.
      * @throws RuntimeException se l'operazione JDBC fallisce.
      */
+    @Override
     public boolean disdiciPromozione(String email, String nomePromozione) {
         String sql = "DELETE FROM abbonato_promozione WHERE email = ? AND promozione_nome = ?";
         try (Connection connection = databaseManager.getConnection();
@@ -489,6 +502,7 @@ public class TelecomRepository {
      * @return true se il record è stato aggiornato, false se l'email non è valida o assente.
      * @throws RuntimeException se il database non consente l'update.
      */
+    @Override
     public boolean aggiornaSaldoConto(String email, double nuovoSaldo) {
         if (email == null || email.isBlank()) {
             return false;
@@ -511,6 +525,7 @@ public class TelecomRepository {
      * @return utilizzo trovato oppure un oggetto vuoto se non esiste alcun risultato.
      * @throws RuntimeException se il recupero o la sincronizzazione falliscono.
      */
+    @Override
     public Utilizzo findUtilizzoByEmail(String email) {
         String sql = """
             SELECT
@@ -563,6 +578,7 @@ public class TelecomRepository {
      * @param descrizione descrizione testuale del beneficio.
      * @throws RuntimeException se l'inserimento SQL fallisce.
      */
+    @Override
     public void addPromozione(String nome, double costo, String descrizione) {
         String sql = "INSERT INTO promozione(nome, costo, descrizione) VALUES (?, ?, ?)";
         try (Connection connection = databaseManager.getConnection();
@@ -583,6 +599,7 @@ public class TelecomRepository {
      * @return totale mensile calcolato, oppure 0.0 se non esiste alcun dato utile.
      * @throws RuntimeException se la query di aggregazione fallisce.
      */
+    @Override
     public double calcolaTotaleMensileByEmail(String email) {
         String sql = """
             SELECT
@@ -615,6 +632,7 @@ public class TelecomRepository {
      * @param email email dell'abbonato da aggiornare.
      * @throws RuntimeException se il recupero o l'aggiornamento dei pagamenti fallisce.
      */
+    @Override
     public void aggiornaPagamentoMeseCorrente(String email) {
         double totaleCorrente = calcolaTotaleMensileByEmail(email);
         String promoCorrente = getPromozioniAttiveString(email);
@@ -715,6 +733,7 @@ public class TelecomRepository {
      * @return lista osservabile dei pagamenti associati all'utente.
      * @throws RuntimeException se la lettura dello storico fallisce.
      */
+    @Override
     public ObservableList<Pagamento> getStoricoPagamenti(String emailAbbonato) {
         ObservableList<Pagamento> storico = FXCollections.observableArrayList();
         String sql = """
@@ -770,6 +789,7 @@ public class TelecomRepository {
      * @return true se la riga è stata aggiornata, false se non esiste.
      * @throws RuntimeException se l'update JDBC fallisce.
      */
+    @Override
     public boolean saldaPagamento(String email, String mese, int anno) {
         String sql = """
             UPDATE pagamenti
@@ -799,6 +819,7 @@ public class TelecomRepository {
      * @param email email del nuovo abbonato.
      * @throws RuntimeException se il database non consente l'inserimento iniziale.
      */
+    @Override
     public void inizializzaStoricoNuovoUtente(String email) {
         String countSql = "SELECT COUNT(*) FROM pagamenti WHERE id_abbonato = ?";
         String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
@@ -931,6 +952,7 @@ public class TelecomRepository {
      * @return lista ordinata di promozioni attive.
      * @throws RuntimeException se la lettura delle associazioni fallisce.
      */
+    @Override
     public List<String> findPromozioniAttiveByEmail(String email) {
         String sql = "SELECT promozione_nome FROM abbonato_promozione WHERE email = ? ORDER BY promozione_nome";
         List<String> result = new ArrayList<>();
@@ -957,6 +979,7 @@ public class TelecomRepository {
      * @return nome dell'abbonato oppure null se assente.
      * @throws RuntimeException se la query fallisce.
      */
+    @Override
     public String findNomeByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -985,6 +1008,7 @@ public class TelecomRepository {
      * @return piano tariffario associato oppure null.
      * @throws RuntimeException se il database non risponde correttamente.
      */
+    @Override
     public PianoTariffario findPianoTariffarioByEmail(String email) {
         if (email == null || email.isBlank()) {
             return null;
@@ -1025,6 +1049,7 @@ public class TelecomRepository {
      * @param minuti minuti da sommare; valori minori o uguali a zero vengono ignorati.
      * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
      */
+    @Override
     public void registraChiamata(String email, int minuti) {
         if (minuti <= 0) {
             return;
@@ -1043,6 +1068,7 @@ public class TelecomRepository {
      * @param email email dell'abbonato.
      * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
      */
+    @Override
     public void registraSms(String email) {
         String sql = """
             UPDATE utilizzo
@@ -1059,6 +1085,7 @@ public class TelecomRepository {
      * @param mb megabyte da sommare; valori minori o uguali a zero vengono ignorati.
      * @throws RuntimeException se l'aggiornamento dell'utilizzo fallisce.
      */
+    @Override
     public void registraDati(String email, int mb) {
         if (mb <= 0) {
             return;

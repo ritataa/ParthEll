@@ -19,8 +19,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import patterns.builder.Abbonato;
 import patterns.facade.AuthFacade;
+import patterns.proxy.ITelecomRepository;
 import patterns.proxy.TelecomRepositoryProxy;
-import service.TelecomRepository;
 
 /*
  * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
@@ -40,7 +40,7 @@ import service.TelecomRepository;
  */
 public class AdminController {
     // Dipendenze principali: repository dati e gestione autenticazione/sessione.
-    private final TelecomRepository repository = new TelecomRepositoryProxy();
+    private final ITelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
 
     @FXML private TableView<model.Utilizzo> tabStatistiche;

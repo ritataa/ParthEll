@@ -16,9 +16,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import patterns.proxy.ITelecomRepository;
 import patterns.proxy.TelecomRepositoryProxy;
 import service.FormInputValidator;
-import service.TelecomRepository;
 
 /*
  * LEGENDA: STANDARD DI DOCUMENTAZIONE JAVADOC
@@ -40,7 +40,7 @@ import service.TelecomRepository;
  */
 public class RegisterController {
 
-    private final TelecomRepository repository = new TelecomRepositoryProxy();
+    private final ITelecomRepository repository = new TelecomRepositoryProxy();
     private final FormInputValidator validator = new FormInputValidator();
 
     @FXML private TextField emailField;

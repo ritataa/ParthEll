@@ -27,6 +27,7 @@ import model.conto.ContoFisso;
 import model.conto.ContoRicaricabile;
 import patterns.builder.Abbonato;
 import patterns.facade.AuthFacade;
+import patterns.proxy.ITelecomRepository;
 import patterns.proxy.TelecomRepositoryProxy;
 import patterns.singleton.UserSession;
 import patterns.state.Pagamento;
@@ -35,7 +36,6 @@ import service.ClienteDataService;
 import service.FormInputValidator;
 import service.OperationResult;
 import service.PromotionService;
-import service.TelecomRepository;
 import service.UIFormatsService;
 import service.UsageRegistrationService;
 
@@ -63,7 +63,7 @@ public class ClienteController {
 
     // Dipendenze applicative: accesso dati, servizi di dominio e utilità UI.
 
-    private final TelecomRepository repository = new TelecomRepositoryProxy();
+    private final ITelecomRepository repository = new TelecomRepositoryProxy();
     private final AuthFacade authFacade = new AuthFacade();
     private final AlertManager alertManager = new AlertManager();
     private final FormInputValidator validator = new FormInputValidator();

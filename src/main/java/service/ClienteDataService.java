@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import model.PianoTariffario;
 import model.Promozione;
 import model.Utilizzo;
+import patterns.proxy.ITelecomRepository;
 import patterns.state.Pagamento;
 
 /*
@@ -33,14 +34,14 @@ import patterns.state.Pagamento;
  */
 public class ClienteDataService {
 
-    private final TelecomRepository repository;
+    private final ITelecomRepository repository;
 
     /**
      * Costruisce il servizio con il repository già pronto all'uso.
      *
      * @param repository repository non nullo usato per accedere ai dati.
      */
-    public ClienteDataService(TelecomRepository repository) {
+    public ClienteDataService(ITelecomRepository repository) {
         this.repository = repository;
     }
 

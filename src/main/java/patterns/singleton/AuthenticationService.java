@@ -1,7 +1,7 @@
 package patterns.singleton;
 
+import patterns.proxy.ITelecomRepository;
 import patterns.proxy.TelecomRepositoryProxy;
-import service.TelecomRepository;
 
 /*
  * ==========================================================
@@ -42,7 +42,7 @@ public class AuthenticationService {
     
     private static final AuthenticationService INSTANCE = new AuthenticationService();  // creazione dell'unico oggetto globale di autenticazione
     
-    private final TelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
+    private final ITelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
     
     /**
      * Costruttore privato per implementare il pattern Singleton.

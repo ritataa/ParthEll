@@ -28,9 +28,9 @@ import service.TelecomRepository;
  * @author ParthEll Team
  * @version 1.0
  */
-public class TelecomRepositoryProxy extends TelecomRepository {
+public class TelecomRepositoryProxy implements ITelecomRepository {
 
-    private final TelecomRepository target = new TelecomRepository(); // Questo e' il repository vero a cui passo tutte le richieste.
+    private final ITelecomRepository target = new TelecomRepository(); // Questo e' il repository vero a cui passo tutte le richieste.
                                                                       // Private perche' deve restare nascosto dentro il proxy, cosi' nessuno da fuori lo tocca direttamente e il proxy puo' controllare sempre il passaggio dei dati.
 
 
@@ -176,6 +176,26 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         return target.findAllPianiTariffari();
     }
 
+    /**
+     * Crea un nuovo cliente con valori base e numero telefonico generato.
+     *
+     * @param email email univoca del cliente.
+     * @param password password da salvare per l'accesso.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @throws RuntimeException se l'inserimento o la sincronizzazione falliscono.
+     */
+    @Override
+    public void addCliente(String email, String password, String nome, String cognome) {
+        log("Aggiunta cliente per " + normalizeText(email));
+        target.addCliente(
+            requireText(email, "Email"),
+            requireText(password, "Password"),
+            requireText(nome, "Nome"),
+            requireText(cognome, "Cognome")
+        );
+    }
+
 
     /**
      * Registra un cliente con conto, validando i campi obbligatori prima della delega.
@@ -317,6 +337,39 @@ public class TelecomRepositoryProxy extends TelecomRepository {
             normalizedScadenzaCarta,
             normalizedCvvCarta,
             normalizedIntestatarioCarta
+        );
+    }
+
+    /**
+     * Variante minima della registrazione che usa il conto fisso di default.
+     *
+     * @param email email non già presente.
+     * @param password password dell'account.
+     * @param nome nome del cliente.
+     * @param cognome cognome del cliente.
+     * @param residenza indirizzo non vuoto.
+     * @param numeroTelefono numero telefonico non già presente.
+     * @param pianoTariffario piano tariffario esistente.
+     * @throws RuntimeException se i controlli di registrazione falliscono.
+     */
+    @Override
+    public void registerCliente(
+        String email,
+        String password,
+        String nome,
+        String cognome,
+        String residenza,
+        String numeroTelefono,
+        String pianoTariffario
+    ) {
+        target.registerCliente(
+            requireText(email, "Email"),
+            requireText(password, "Password"),
+            requireText(nome, "Nome"),
+            requireText(cognome, "Cognome"),
+            requireText(residenza, "Residenza"),
+            requireText(numeroTelefono, "Numero di telefono"),
+            requireText(pianoTariffario, "Piano tariffario")
         );
     }
 
@@ -510,6 +563,18 @@ public class TelecomRepositoryProxy extends TelecomRepository {
         String normalizedPromozione = requireText(nomePromozione, "Nome promozione");
         log("Disdetta promozione " + normalizedPromozione + " per " + normalizedEmail);
         return target.disdiciPromozione(normalizedEmail, normalizedPromozione);
+    }
+
+    /**
+     * Restituisce l'elenco dei nomi promozione già associati all'abbonato.
+     *
+     * @param email email dell'abbonato.
+     * @return lista ordinata di promozioni attive.
+     * @throws RuntimeException se la lettura delle associazioni fallisce.
+     */
+    @Override
+    public List<String> findPromozioniAttiveByEmail(String email) {
+        return target.findPromozioniAttiveByEmail(normalizeText(email));
     }
 
     /**
