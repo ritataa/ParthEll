@@ -121,32 +121,6 @@ public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
         this(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, conto, saldo, null, null, null, null);
     }
 
-    /**
-     * Costruttore minimalista per abbonati Ricaricabile senza conto esplicito e senza dati carta.
-     * Imposta il conto predefinito a "Fisso" e delega al secondo costruttore.
-     *
-     * @param email indirizzo email unico dell'abbonato.
-     * @param password password dell'abbonato.
-     * @param nome nome proprio dell'abbonato.
-     * @param cognome cognome dell'abbonato.
-     * @param residenza indirizzo di residenza dell'abbonato.
-     * @param numeroTelefono numero di telefono per contatti.
-     * @param pianoTariffario tipo di piano (es. "Ricaricabile").
-     * @param saldo saldo iniziale dell'abbonato.
-     */
-    // Backward compatibility per Ricaricabile
-    public InsertAbbonatoCommand(
-        String email,
-        String password,
-        String nome,
-        String cognome,
-        String residenza,
-        String numeroTelefono,
-        String pianoTariffario,
-        double saldo
-    ) {
-        this(email, password, nome, cognome, residenza, numeroTelefono, pianoTariffario, "Fisso", saldo, null, null, null, null);
-    }
 
     // Sicurezza: @Override verifica che sto rispettando il metodo execute() promesso dall'interfaccia DatabaseCommand.
     @Override

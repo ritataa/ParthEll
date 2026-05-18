@@ -830,11 +830,14 @@ public class TelecomRepository implements ITelecomRepository {
             int meseCorrente = java.time.LocalDate.now().getMonthValue();
             int annoCorrente = java.time.LocalDate.now().getYear();
             String meseItaliano = getMeseItaliano(meseCorrente);
+            
+            //  Calcolo il totale reale interrogando il DB
+            double totaleReale = calcolaTotaleMensileByEmail(email);
 
-        // COMMAND ESEGUE E LOGGA
-        patterns.command.db.InsertPagamentoCommand comandoNuovoUtente = 
-        new patterns.command.db.InsertPagamentoCommand(email, meseItaliano, annoCorrente, 24.99, "Da pagare", promoSnapshot);
-        comandoNuovoUtente.execute(connection);
+            // COMMAND ESEGUE E LOGGA 
+            patterns.command.db.InsertPagamentoCommand comandoNuovoUtente = 
+                new patterns.command.db.InsertPagamentoCommand(email, meseItaliano, annoCorrente, totaleReale, "Da pagare", promoSnapshot);
+            comandoNuovoUtente.execute(connection);
         } catch (SQLException exception) {
             throw new RuntimeException("Errore inizializzazione storico pagamenti", exception);
         }
