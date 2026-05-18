@@ -207,9 +207,17 @@ public class Pagamento {
      */
     public void confermaPagamentoState() {
         System.out.println("[ATTO 4 - 14. STATE PAGAMENTO] Richiesta conferma pagamento: transizione verso stato successivo.");
-        // Delego la transizione al tipo di stato concreto per mantenere il comportamento incapsulato.
-        state = state.pay();
-        stato.set(state.getNome());
+    
+
+        state = state.pay();            // * Il Contesto non contiene strutture condizionali (if/else). Delega interamente 
+                                        // * allo stato corrente la responsabilità di valutare la validità dell'azione 
+                                        // * e di restituire l'istanza dello stato successivo. La variabile 'state' 
+                                        // * si sovrascrive dinamicamente a runtime (es: da DaPagare a PagamentoConfermato).
+
+        stato.set(state.getNome());     // * stato (con la 'o' finale) è la proprietà JavaFX di tipo SimpleStringProperty.
+                                        // * Attraverso il metodo .set(), andiamo ad aggiornare il testo racchiuso in questa proprietà chiedendolo direttamente al nuovo stato appena installato (state.getNome()).
+                                        // * Poiché la tabella o la UI della tua dashboard è "in ascolto" su questa proprietà, la scritta sullo schermo cambia istantaneamente da "Da pagare" a "Pagamento confermato" 
+                                        // * senza bisogno di rinfrescare la pagina a mano.
     }
 
     // resolveState è private (metodo non virtuale), quindi non può essere sovrascritto da eventuali sottoclassi.

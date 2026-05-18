@@ -53,6 +53,6 @@ public class DaPagareState implements PagamentoState {
     @Override
     public PagamentoState pay() {
         System.out.println("[ATTO 4 - 15. STATE DA PAGARE] Transizione da 'Da pagare' a 'Pagamento confermato'.");
-        return new PagamentoConfermatoState();
+        return new PagamentoConfermatoState(); // Restituisce un nuovo Oggetto di tipo Stato, che rappresenta la transizione di stato dopo il pagamento. 
     }
 }
