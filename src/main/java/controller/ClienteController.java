@@ -539,6 +539,19 @@ public class ClienteController {
             }
         }
 
+        // INIZIO INTEGRAZIONE STRATEGY PATTERN 
+        patterns.strategy.PaymentContext context = new patterns.strategy.PaymentContext();
+        
+        switch (metodoPagamento) {
+            case "Contanti" -> context.setStrategy(new patterns.strategy.CashPaymentStrategy());
+            case "Carta"    -> context.setStrategy(new patterns.strategy.CardPaymentStrategy());
+            case "Bancomat" -> context.setStrategy(new patterns.strategy.BancomatPaymentStrategy());
+        }
+        
+        // Eseguiamo la strategia e salviamo il messaggio che ci restituisce
+        String messaggioStrategia = context.executePayment(importoRicarica);
+        // FINE INTEGRAZIONE STRATEGY PATTERN
+
         try {
             contoRicaricabile.ricarica(importoRicarica);
         } catch (IllegalArgumentException exception) {
@@ -552,10 +565,11 @@ public class ClienteController {
             return;
         }
 
+        // Usiamo il messaggio generato dalla Strategia direttamente nell'interfaccia utente
         showAlert(
             javafx.scene.control.Alert.AlertType.INFORMATION,
             "Ricarica completata",
-            String.format("Ricarica %s effettuata: € %.2f. Saldo attuale: € %.2f", metodoPagamento, importoRicarica, contoRicaricabile.getSaldo())
+            messaggioStrategia + String.format("\nSaldo attuale: € %.2f", contoRicaricabile.getSaldo())
         );
 
         provaPagamentoStoricoDaSaldo(email, contoRicaricabile);
