@@ -20,10 +20,10 @@ import service.TelecomRepository;
  */
 
 /**
- * Proxy del repository applicativo che intercetta le chiamate e le inoltra a
- * {@link TelecomRepository} dopo una normalizzazione minima dei dati.
- * Usa il pattern Proxy per centralizzare validazione, logging e policy senza
- * modificare i client che dipendono dal repository.
+ * Proxy viene usato solo dall'interfaccia grafica: quando utente clicca bottone, Controller parla con TelecomRepositoryProxy attraverso ITelecomRepository.
+ * Una volta controllato che è tutto ok, passa a TelecomRepository.
+ * Proxy crea e nasconde al suo interno il repository vero (target). 
+ * Il resto del programma chiamerà il Proxy, pensando di parlare con il database, ma in realtà sta parlando con il Proxy.
  *
  * @author ParthEll Team
  * @version 1.0

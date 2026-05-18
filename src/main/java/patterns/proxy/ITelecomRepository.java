@@ -14,6 +14,12 @@ import patterns.state.Pagamento;
  * Espone le stesse operazioni pubbliche di {@link service.TelecomRepository}
  * senza legare i client alla classe concreta.
  *
+ * Interfaccia che contiene le regole di accesso al database e le operazioni di business per la gestione degli abbonati, promozioni e pagamenti.
+ * Praticamentw dice cosa si può chiedere al servizio.
+ * Il proxy implementerà questa interfaccia per fornire un livello di controllo e caching, mentre il repository reale si occuperà dell'accesso diretto al database.
+ * 
+ * Tutto parte da questa interfaccia, che dice al resto del sistema che se vogliono parlare con il database, devono usare i metodi dichiarati qui.
+ * 
  * @author ParthEll Team
  * @version 1.0
  */
