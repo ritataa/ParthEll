@@ -508,6 +508,9 @@ public class ClienteController {
             // 2B. Conto fisso (addebito differito) o ricaricabile con fondi: aggiorna direttamente lo stato pagamento
             conto.addebita(importoDaPagare);
             
+            // PATTERN STATE
+            selezionato.confermaPagamentoState();
+
             // Dato che ha pagato internamente col saldo, aggiorniamo subito il DB
             boolean saldato = dataService.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
             
@@ -633,6 +636,9 @@ public class ClienteController {
             showAlert(javafx.scene.control.Alert.AlertType.ERROR, "Errore DB", "Pagamento non salvato: errore aggiornamento saldo.");
             return;
         }
+
+        // PATTERN STATE
+        selezionato.confermaPagamentoState();
 
         boolean saldato = dataService.saldaPagamento(email, selezionato.getMese(), selezionato.getAnno());
         if (!saldato) {
