@@ -34,8 +34,7 @@ public class TelecomRepositoryProxy implements ITelecomRepository {
                                                                       // Private perche' deve restare nascosto dentro il proxy, cosi' nessuno da fuori lo tocca direttamente e il proxy puo' controllare sempre il passaggio dei dati.
 
 
-    // Questo metodo centralizzato formatta i log standard del Proxy secondo lo Storyboard Architetturale
-    // Private perche' deve essere usato solo dentro questa classe, cosi' nessun altro puo' chiamarlo direttamente e il controllo dei messaggi resta qui dentro.
+    // Questo metodo centralizzato assegna l'Atto corretto in modo dinamico per lo Storyboard
     private void log(String message) { 
         String atto = "ATTO X - Y"; // Fallback di sicurezza
         
@@ -49,6 +48,10 @@ public class TelecomRepositoryProxy implements ITelecomRepository {
             atto = "ATTO 4 - 9";
         } else if (message.contains("Aggiornamento saldo")) {
             atto = "ATTO 4 - 5.5";
+        } else if (message.contains("Adesione promozione")) {
+            atto = "ATTO 3 - 3.5"; // Regola per l'adesione
+        } else if (message.contains("Disdetta promozione")) {
+            atto = "ATTO 3 - 4";   // Regola per la disdetta
         }
         
         System.out.println("[" + atto + ". PROXY TELECOM REPOSITORY PROXY] " + message);
