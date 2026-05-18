@@ -25,7 +25,10 @@ public interface DatabaseCommand<T> {   //POLIMORFISMO PER DATI: DatabaseCommand
      * Esegue il comando sul database usando la connessione fornita.
      * Il risultato dipende dall'implementazione concreta del comando. (ecco perche' usiamo generico <T>).
      *  <T> è un tipo generico, viene usato perché non sappiamo a priori che tipo di risultato restituirà l'operazione sul database (numero, stringa, etc.). 
-     *
+     * 
+     * i tipi generici accettano solo classi wrapper (Integer, String, etc.) e non tipi primitivi (int, double, etc.), perché i tipi primitivi non sono oggetti e 
+     * non possono essere usati come parametri di tipo generico.
+     * 
      * @param connection connessione JDBC gia' aperta e valida per l'operazione.
      * @return risultato dell'operazione, secondo il contratto dell'implementazione concreta.
      * @throws SQLException se l'accesso al database fallisce o la query non puo' essere eseguita.

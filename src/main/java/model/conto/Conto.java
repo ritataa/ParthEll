@@ -10,6 +10,8 @@ package model.conto;
  * - Liskov Substitution: sottoclassi sostituibili senza rompere il contratto
  * - Interface Segregation: interfaccia focalizzata su operazioni essenziali
  * - Dependency Inversion: dipendere dall'astrazione, non dalle implementazioni concrete
+ * 
+ * L'interfaccia Conto definisce il contratto che tutti i conti devono rispettare, senza specificare come implementarlo.
  */
 public interface Conto {
 

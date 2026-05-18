@@ -23,7 +23,7 @@ import java.sql.SQLException;
  */
 // Risolviamo il "Jolly" <T> dell'interfaccia impostandolo a <String>, perché 
 // questo specifico comando restituisce le promozioni sotto forma di testo unico (CSV).
-public final class FindPromozioniAttiveCommand implements DatabaseCommand<String> { 
+public final class FindPromozioniAttiveCommand implements DatabaseCommand<String> {     // String = classe wrapper che ha al suo interno solo una variabile di tipo primitivo string
 
     private static final String SQL = """
         SELECT COALESCE(GROUP_CONCAT(promozione_nome, ', '), '') AS promo

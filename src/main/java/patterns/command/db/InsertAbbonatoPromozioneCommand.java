@@ -20,7 +20,7 @@ import java.sql.SQLException;
  * @author ParthEll Team
  * @version 1.0
  */
-public final class InsertAbbonatoPromozioneCommand implements DatabaseCommand<Integer> {
+public final class InsertAbbonatoPromozioneCommand implements DatabaseCommand<Integer> {    // Integer = classe wrapper che ha al suo interno solo una variabile di tipo primitivo int
 
     private static final String SQL = "INSERT OR IGNORE INTO abbonato_promozione(email, promozione_nome) VALUES (?, ?)";
 

@@ -23,7 +23,7 @@ import java.sql.SQLException;
 
 // Risolviamo il "Jolly" <T> dell'interfaccia impostandolo a <Integer>, perché questo specifico comando 
 // restituisce il numero di righe inserite (int) come risultato dell'operazione.
-public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {
+public final class InsertAbbonatoCommand implements DatabaseCommand<Integer> {  // Integer = classe wrapper che ha al suo interno solo una variabile di tipo primitivo int
 
     private static final String SQL = """
         INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta)

@@ -20,7 +20,7 @@ import java.sql.SQLException;
  * @author ParthEll Team
  * @version 1.0
  */
-public final class InsertPianoTariffarioCommand implements DatabaseCommand<Integer> {
+public final class InsertPianoTariffarioCommand implements DatabaseCommand<Integer> { // Integer = classe wrapper che ha al suo interno solo una variabile di tipo primitivo int
 
     private static final String SQL = """
         INSERT INTO piano_tariffario(nome, minuti_mensili, giga_mensili, illimitato_minuti, illimitato_giga, costo_mensile)
