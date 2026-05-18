@@ -42,7 +42,7 @@ public class AuthenticationService {
     
     private static final AuthenticationService INSTANCE = new AuthenticationService();  // creazione dell'unico oggetto globale di autenticazione
     
-    private final ITelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
+    private ITelecomRepository repository = new TelecomRepositoryProxy();  // creazione del Proxy che il Singleton utilizza per parlare con i dati senza accedere al database vero
     
     /**
      * Costruttore privato per implementare il pattern Singleton.
@@ -57,6 +57,14 @@ public class AuthenticationService {
      */
     public static AuthenticationService getInstance() {
         return INSTANCE;
+    }
+/**
+ * Setter per il repository, utile per l'iniezione di dipendenza e per i test.
+ * Permette di sostituire il repository con un mock o una versione diversa senza modificare il codice del servizio di autenticazione.
+ * @param repository
+ */
+    public void setRepository(ITelecomRepository repository) {
+        this.repository = repository;
     }
     
     /**
