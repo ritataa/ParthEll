@@ -57,7 +57,7 @@ public final class InsertPromozioneCommand implements DatabaseCommand<Integer> {
     // questo blocco serve a evitare problemi di sicurezza come cancellare o rubare i dati (SQL injection) e 
     // a non consumare RAM inutilmente (try-with-resources chiude automaticamente statement anche in caso di eccezione).
     public Integer execute(Connection connection) throws SQLException {         // Connection è un'interfaccia di JDBC che rappresenta una connessione al database. Viene passata al comando per eseguire l'operazione sul database.
-
+        System.out.println("[ATTO DB - COMMAND " + this.getClass().getSimpleName().toUpperCase() + "] Eseguo l'operazione SQL incapsulata nel pattern Command.");
         try (PreparedStatement statement = connection.prepareStatement(SQL)) {  // PreparedStatement fa parte di JDBC e dice quale "forma" deve avere la variabile ('statement') che stiamo creando. 
                                                                                 // In questo caso, ordina di creare un oggetto capace di contenere query SQL in modo sicuro.
                                                                                 // prepareStatement è un metodo che si trova dentro l'oggetto Connection e serve a creare un PreparedStatement a partire da una stringa SQL con parametri (?).

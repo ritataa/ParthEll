@@ -329,60 +329,45 @@ public class TelecomRepository implements ITelecomRepository {
         String cvvCarta,
         String intestatarioCarta
     ) {
-        // Controllo preliminare: evito duplicati prima dell'INSERT.
         String checkEmailSql = "SELECT 1 FROM abbonato WHERE email = ?";
         String checkNumeroSql = "SELECT 1 FROM abbonato WHERE numero_telefono = ?";
 
         try (Connection connection = databaseManager.getConnection()) {
-            // Verifico subito se l'email è già occupata.
+            // Verifico se l'email è già occupata.
             try (PreparedStatement checkEmail = connection.prepareStatement(checkEmailSql)) {
                 checkEmail.setString(1, email.trim());
                 try (ResultSet rs = checkEmail.executeQuery()) {
-                    if (rs.next()) {
-                        throw new RuntimeException("Errore registrazione cliente: email già esistente");
-                    }
+                    if (rs.next()) throw new RuntimeException("Errore registrazione: email già esistente");
                 }
             }
 
-            // Verifico anche il numero di telefono per mantenere la chiave logica unica.
+            // Verifico il numero di telefono.
             try (PreparedStatement checkNumero = connection.prepareStatement(checkNumeroSql)) {
                 checkNumero.setString(1, numeroTelefono.trim());
                 try (ResultSet rs = checkNumero.executeQuery()) {
-                    if (rs.next()) {
-                        throw new RuntimeException("Errore registrazione cliente: numero di telefono già esistente");
-                    }
+                    if (rs.next()) throw new RuntimeException("Errore registrazione: numero di telefono già esistente");
                 }
             }
 
-            // Solo dopo i controlli eseguo l'inserimento definitivo.
-            String sql = """
-                INSERT INTO abbonato(email, password, nome, cognome, residenza, numero_telefono, piano_tariffario, conto, saldo, numero_carta, scadenza_carta, cvv_carta, intestatario_carta)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                String pianoNormalizzato = pianoTariffario.trim().toLowerCase();
-                if (!existsPianoTariffario(connection, pianoNormalizzato)) {
-                    throw new RuntimeException("Piano tariffario non valido");
-                }
-
-                String contoNormalizzato = normalizeContoValue(conto);
-                statement.setString(1, email.trim());
-                statement.setString(2, password);
-                statement.setString(3, nome.trim());
-                statement.setString(4, cognome.trim());
-                statement.setString(5, residenza.trim());
-                statement.setString(6, numeroTelefono.trim());
-                statement.setString(7, pianoNormalizzato);
-                statement.setString(8, contoNormalizzato);
-                statement.setDouble(9, 0.0);
-                statement.setString(10, numeroCarta);
-                statement.setString(11, scadenzaCarta);
-                statement.setString(12, cvvCarta);
-                statement.setString(13, intestatarioCarta);
-                statement.executeUpdate();
-                createUtilizzoIfMissing(connection, numeroTelefono.trim());
+            // --- INIZIO USO DEL PATTERN COMMAND ---
+            String pianoNormalizzato = pianoTariffario.trim().toLowerCase();
+            if (!existsPianoTariffario(connection, pianoNormalizzato)) {
+                throw new RuntimeException("Piano tariffario non valido");
             }
+            String contoNormalizzato = normalizeContoValue(conto);
+
+            patterns.command.db.InsertAbbonatoCommand comando = 
+                new patterns.command.db.InsertAbbonatoCommand(
+                    email.trim(), password, nome.trim(), cognome.trim(), residenza.trim(), 
+                    numeroTelefono.trim(), pianoNormalizzato, contoNormalizzato, 0.0, 
+                    numeroCarta, scadenzaCarta, cvvCarta, intestatarioCarta
+                );
+            
+            comando.execute(connection); // Salva su DB e spara il Log nel terminale!
+            // --- FINE USO DEL PATTERN COMMAND ---
+
+            createUtilizzoIfMissing(connection, numeroTelefono.trim());
+            
         } catch (SQLException exception) {
             throw new RuntimeException("Errore registrazione cliente", exception);
         }
@@ -451,7 +436,6 @@ public class TelecomRepository implements ITelecomRepository {
     @Override
     public boolean aderisciPromozione(String email, String nomePromozione) {
         String checkPromoSql = "SELECT 1 FROM promozione WHERE nome = ?";
-        String insertSql = "INSERT OR IGNORE INTO abbonato_promozione(email, promozione_nome) VALUES (?, ?)";
 
         try (Connection connection = databaseManager.getConnection()) {
             try (PreparedStatement checkStatement = connection.prepareStatement(checkPromoSql)) {
@@ -463,11 +447,12 @@ public class TelecomRepository implements ITelecomRepository {
                 }
             }
 
-            try (PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
-                insertStatement.setString(1, email);
-                insertStatement.setString(2, nomePromozione);
-                return insertStatement.executeUpdate() > 0;
-            }
+            // IL PATTERN COMMAND IN AZIONE
+            patterns.command.db.InsertAbbonatoPromozioneCommand comando = 
+                new patterns.command.db.InsertAbbonatoPromozioneCommand(email, nomePromozione);
+            
+            return comando.execute(connection) > 0; // Esegue la query e stampa il Log!
+            
         } catch (SQLException exception) {
             throw new RuntimeException("Errore adesione promozione", exception);
         }
@@ -580,13 +565,13 @@ public class TelecomRepository implements ITelecomRepository {
      */
     @Override
     public void addPromozione(String nome, double costo, String descrizione) {
-        String sql = "INSERT INTO promozione(nome, costo, descrizione) VALUES (?, ?, ?)";
-        try (Connection connection = databaseManager.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, nome);
-            statement.setDouble(2, costo);
-            statement.setString(3, descrizione);
-            statement.executeUpdate();
+        try (Connection connection = databaseManager.getConnection()) {
+            // IL PATTERN COMMAND IN AZIONE
+            patterns.command.db.InsertPromozioneCommand comando = 
+                new patterns.command.db.InsertPromozioneCommand(nome, costo, descrizione);
+            
+            comando.execute(connection); // Esegue la query e stampa il Log
+            
         } catch (SQLException exception) {
             throw new RuntimeException("Errore inserimento promozione", exception);
         }
@@ -632,6 +617,7 @@ public class TelecomRepository implements ITelecomRepository {
      * @param email email dell'abbonato da aggiornare.
      * @throws RuntimeException se il recupero o l'aggiornamento dei pagamenti fallisce.
      */
+    // Attivare InsertPagamentoCommand
     @Override
     public void aggiornaPagamentoMeseCorrente(String email) {
         double totaleCorrente = calcolaTotaleMensileByEmail(email);
@@ -657,13 +643,12 @@ public class TelecomRepository implements ITelecomRepository {
                     ELSE 99
                 END ASC
             """;
-        String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
+        
         String updateSql = "UPDATE pagamenti SET importo = ?, promo = ?, stato = 'Da pagare' WHERE id_abbonato = ? AND mese = ? AND anno = ?";
 
         try (Connection connection = databaseManager.getConnection();
-             PreparedStatement selectStatement = connection.prepareStatement(selectSql);
-             PreparedStatement insertStatement = connection.prepareStatement(insertSql);
-             PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
+            PreparedStatement selectStatement = connection.prepareStatement(selectSql);
+            PreparedStatement updateStatement = connection.prepareStatement(updateSql)) {
             selectStatement.setString(1, email);
 
             String meseTarget = null;
@@ -714,13 +699,9 @@ public class TelecomRepository implements ITelecomRepository {
                 }
             }
 
-            insertStatement.setString(1, email);
-            insertStatement.setString(2, meseNuovo);
-            insertStatement.setInt(3, annoNuovo);
-            insertStatement.setDouble(4, totaleCorrente);
-            insertStatement.setString(5, "Da pagare");
-            insertStatement.setString(6, promoCorrente);
-            insertStatement.executeUpdate();
+            patterns.command.db.InsertPagamentoCommand comandoNuovoMese = 
+            new patterns.command.db.InsertPagamentoCommand(email, meseNuovo, annoNuovo, totaleCorrente, "Da pagare", promoCorrente);
+            comandoNuovoMese.execute(connection);
         } catch (SQLException exception) {
             throw new RuntimeException("Errore aggiornamento pagamento mese corrente", exception);
         }
@@ -808,10 +789,16 @@ public class TelecomRepository implements ITelecomRepository {
         }
     }
 
+    // Attivare FindPromozioniAttiveCommand
     private String getPromozioniAttiveString(String email) {
-        List<String> promozioni = findPromozioniAttiveByEmail(email);
-        return String.join(", ", promozioni);
+    try (Connection connection = databaseManager.getConnection()) {
+        patterns.command.db.FindPromozioniAttiveCommand comando = 
+            new patterns.command.db.FindPromozioniAttiveCommand(email);
+        return comando.execute(connection);
+    } catch (SQLException exception) {
+        throw new RuntimeException("Errore lettura promozioni attive tramite Command", exception);
     }
+}
 
     /**
      * Inizializza lo storico pagamenti del nuovo utente con il mese corrente.
@@ -822,11 +809,9 @@ public class TelecomRepository implements ITelecomRepository {
     @Override
     public void inizializzaStoricoNuovoUtente(String email) {
         String countSql = "SELECT COUNT(*) FROM pagamenti WHERE id_abbonato = ?";
-        String insertSql = "INSERT INTO pagamenti(id_abbonato, mese, anno, importo, stato, promo) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = databaseManager.getConnection();
-             PreparedStatement countStatement = connection.prepareStatement(countSql);
-             PreparedStatement insertStatement = connection.prepareStatement(insertSql)) {
+            PreparedStatement countStatement = connection.prepareStatement(countSql)) {
             countStatement.setString(1, email);
             try (ResultSet rs = countStatement.executeQuery()) {
                 int count;
@@ -846,29 +831,16 @@ public class TelecomRepository implements ITelecomRepository {
             int annoCorrente = java.time.LocalDate.now().getYear();
             String meseItaliano = getMeseItaliano(meseCorrente);
 
-            insertPagamento(insertStatement, email, meseItaliano, annoCorrente, 24.99, "Da pagare", promoSnapshot);
+        // COMMAND ESEGUE E LOGGA
+        patterns.command.db.InsertPagamentoCommand comandoNuovoUtente = 
+        new patterns.command.db.InsertPagamentoCommand(email, meseItaliano, annoCorrente, 24.99, "Da pagare", promoSnapshot);
+        comandoNuovoUtente.execute(connection);
         } catch (SQLException exception) {
             throw new RuntimeException("Errore inizializzazione storico pagamenti", exception);
         }
     }
 
-    private void insertPagamento(
-        PreparedStatement statement,
-        String idAbbonato,
-        String mese,
-        int anno,
-        double importo,
-        String stato,
-        String promo
-    ) throws SQLException {
-        statement.setString(1, idAbbonato);
-        statement.setString(2, mese);
-        statement.setInt(3, anno);
-        statement.setDouble(4, importo);
-        statement.setString(5, stato);
-        statement.setString(6, promo);
-        statement.executeUpdate();
-    }
+
 
     private String[] getUltimoPagamentoConfermato(String email) throws SQLException {
         String sql = """

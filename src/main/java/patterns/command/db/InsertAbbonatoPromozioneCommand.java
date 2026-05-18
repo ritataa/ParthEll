@@ -54,6 +54,8 @@ public final class InsertAbbonatoPromozioneCommand implements DatabaseCommand<In
     // questo blocco serve a preparare la query SQL in modo sicuro, evitando problemi di SQL injection, e a gestire il risultato in modo robusto.
    public Integer execute(Connection connection) throws SQLException {         // Connection è un'interfaccia di JDBC che rappresenta una connessione al database. Viene passata al comando per eseguire l'operazione sul database.
 
+    System.out.println("[ATTO DB - COMMAND " + this.getClass().getSimpleName().toUpperCase() + "] Eseguo l'operazione SQL incapsulata nel pattern Command.");
+    
         try (PreparedStatement statement = connection.prepareStatement(SQL)) {  // PreparedStatement fa parte di JDBC e dice quale "forma" deve avere la variabile ('statement') che stiamo creando. 
                                                                                 // In questo caso, ordina di creare un oggetto capace di contenere query SQL in modo sicuro.
                                                                                 // prepareStatement è un metodo che si trova dentro l'oggetto Connection e serve a creare un PreparedStatement a partire da una stringa SQL con parametri (?).

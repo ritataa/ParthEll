@@ -50,6 +50,7 @@ public final class FindPromozioniAttiveCommand implements DatabaseCommand<String
 
     // questo blocco serve a preparare la query SQL in modo sicuro, evitando problemi di SQL injection, e a gestire il risultato in modo robusto.
     public String execute(Connection connection) throws SQLException {
+        System.out.println("[ATTO DB - COMMAND " + this.getClass().getSimpleName().toUpperCase() + "] Eseguo l'operazione SQL incapsulata nel pattern Command.");
         // Preparo la query una sola volta e la lego ai valori dinamici in modo sicuro.
         try (PreparedStatement statement = connection.prepareStatement(SQL)) {          //PreparedStatement fa parte di JDBC e serve per eseguire query SQL in modo sicuro, evitando problemi di SQL injection.
             // Inserisco l'email come parametro, evitando concatenazioni SQL.
