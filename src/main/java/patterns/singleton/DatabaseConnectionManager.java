@@ -45,6 +45,7 @@ public final class DatabaseConnectionManager {
      * l'esistenza del driver SQLite, fallendo subito in caso di problemi.
      */
     private DatabaseConnectionManager() {
+        System.out.println("[ATTO 2 - 1. SINGLETON DATABASE CONNECTION MANAGER] Inizializzo il gestore unico delle connessioni al database.");
         try {
             // Caricamento del driver SQLite: necessario prima di usare DriverManager
             Class.forName("org.sqlite.JDBC");
@@ -62,6 +63,7 @@ public final class DatabaseConnectionManager {
      * @return l'unica istanza del Singleton (non-null)
      */
     public static DatabaseConnectionManager getInstance() {
+        System.out.println("[ATTO 2 - 2. SINGLETON DATABASE CONNECTION MANAGER] Restituisco il gestore unico delle connessioni al database.");
         // Ritorno dell'istanza statica già costruita al caricamento della classe
         return INSTANCE;
     }
@@ -76,6 +78,7 @@ public final class DatabaseConnectionManager {
      * @throws SQLException se il database è inaccessibile, corrotto, o l'URL è malformato
      */
     public Connection getConnection() throws SQLException {
+        System.out.println("[ATTO 2 - 4. SINGLETON DATABASE CONNECTION MANAGER] Apro una nuova connessione JDBC verso il database SQLite.");
         // DriverManager.getConnection() crea una nuova Connection ogni volta
         return DriverManager.getConnection(DB_URL);
     }

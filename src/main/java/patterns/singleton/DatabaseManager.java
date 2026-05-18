@@ -33,6 +33,7 @@ public final class DatabaseManager {
     private static final DatabaseManager INSTANCE = new DatabaseManager();
 
     private DatabaseManager() {
+        System.out.println("[ATTO 2 - 1. SINGLETON DATABASE MANAGER] Inizializzo il punto di accesso unico alle connessioni database.");
         // Costruttore privato per prevenire istanziazione esterna (Singleton)
     }
 
@@ -43,6 +44,7 @@ public final class DatabaseManager {
      * @return l'istanza singleton di DatabaseManager (non-null)
      */
     public static DatabaseManager getInstance() {
+        System.out.println("[ATTO 2 - 2. SINGLETON DATABASE MANAGER] Restituisco il punto di accesso unico alle connessioni database.");
         // Ritorna l'istanza eager già inizializzata
         return INSTANCE;
     }
@@ -55,6 +57,7 @@ public final class DatabaseManager {
      * @throws SQLException se la connessione al database fallisce
      */
     public Connection getConnection() throws SQLException {
+        System.out.println("[ATTO 2 - 3. SINGLETON DATABASE MANAGER] Delego l'apertura della connessione al gestore tecnico dedicato.");
         // Delega la creazione della Connection al manager responsabile del driver
         return CONNECTION_MANAGER.getConnection();
     }

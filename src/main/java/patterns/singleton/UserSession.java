@@ -35,6 +35,7 @@ public final class UserSession {
     private String currentRole;     // Ruolo corrente dell'utente; valori attesi: "cliente", "admin", ecc.
 
     private UserSession() {
+        System.out.println("[ATTO 2 - 1. SINGLETON USER SESSION] Inizializzo la sessione unica in memoria per l'utente autenticato.");
         // Costruttore privato per implementare il Singleton
     }
 
@@ -44,6 +45,7 @@ public final class UserSession {
      * @return l'istanza globale di UserSession (non-null)
      */
     public static UserSession getInstance() {
+        System.out.println("[ATTO 2 - 2. SINGLETON USER SESSION] Restituisco la sessione unica dell'utente autenticato.");
         // Ritorna l'istanza eager
         return INSTANCE;
     }
@@ -97,6 +99,7 @@ public final class UserSession {
      * Reimposta email e ruolo a null.
      */
     public void clear() {
+        System.out.println("[ATTO 2 - 4. SINGLETON USER SESSION] Svuoto lo stato della sessione corrente.");
         // Rimuove i riferimenti per terminare la sessione
         this.currentEmail = null;
         this.currentRole = null;

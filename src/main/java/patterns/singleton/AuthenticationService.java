@@ -48,6 +48,7 @@ public class AuthenticationService {
      * Costruttore privato per implementare il pattern Singleton.
      */
     private AuthenticationService() {
+        System.out.println("[ATTO 2 - 1. SINGLETON AUTHENTICATION SERVICE] Creo l'istanza unica del servizio di autenticazione.");
     }
     
     /**
@@ -56,6 +57,7 @@ public class AuthenticationService {
      * @return l'istanza singleton di AuthenticationService
      */
     public static AuthenticationService getInstance() {
+        System.out.println("[ATTO 2 - 2. SINGLETON AUTHENTICATION SERVICE] Restituisco l'istanza unica del servizio di autenticazione.");
         return INSTANCE;
     }
 /**
@@ -75,6 +77,7 @@ public class AuthenticationService {
      * @return il tipo di utente ("admin", "cliente") o null se non autenticato
      */
     public String authenticate(String email, String password) {
+        System.out.println("[ATTO 2 - 2. SINGLETON AUTHENTICATION SERVICE] Delego l'autenticazione al repository tramite il servizio singleton.");
         return repository.authenticate(email, password);
     }
     

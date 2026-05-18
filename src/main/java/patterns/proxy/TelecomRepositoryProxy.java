@@ -34,10 +34,24 @@ public class TelecomRepositoryProxy implements ITelecomRepository {
                                                                       // Private perche' deve restare nascosto dentro il proxy, cosi' nessuno da fuori lo tocca direttamente e il proxy puo' controllare sempre il passaggio dei dati.
 
 
-    // Questo metodo prende un messaggio e lo scrive negli errori per tenere traccia di cio' che fa il proxy.
+    // Questo metodo centralizzato formatta i log standard del Proxy secondo lo Storyboard Architetturale
     // Private perche' deve essere usato solo dentro questa classe, cosi' nessun altro puo' chiamarlo direttamente e il controllo dei messaggi resta qui dentro.
     private void log(String message) { 
-        System.err.println("[TelecomRepositoryProxy] " + message);
+        String atto = "ATTO X - Y"; // Fallback di sicurezza
+        
+        if (message.contains("Registrazione") || message.contains("Aggiunta cliente")) {
+            atto = "ATTO 1 - 4";
+        } else if (message.contains("Autenticazione")) {
+            atto = "ATTO 2 - 2.5";
+        } else if (message.contains("pagamento mese corrente")) {
+            atto = "ATTO 2 - 5";
+        } else if (message.contains("Saldo pagamento")) {
+            atto = "ATTO 4 - 9";
+        } else if (message.contains("Aggiornamento saldo")) {
+            atto = "ATTO 4 - 5.5";
+        }
+        
+        System.out.println("[" + atto + ". PROXY TELECOM REPOSITORY PROXY] " + message);
     }
 
     // Questo controllo prende un testo obbligatorio, blocca i valori vuoti o mancanti e lo restituisce pulito.
