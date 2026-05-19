@@ -17,6 +17,13 @@ import model.conto.ContoFisso;
      * Il Builder separa la costruzione dell'oggetto (Builder) dalla sua rappresentazione (Abbonato),
      * permettendo configurazioni fluenti e valori di default per il `Conto`.
      *
+     * Senza builder:
+        * Abbonato a = new Abbonato("Mario", "Rossi", "m@p.it", "Roma", "333", piano, conto, "1234", "12/26", "123", "Mario Rossi");
+        * 
+        * Se Anna sceglie l'abbonamento "Ricaricabile" e non ha una carta di credito:
+     * Abbonato a = new Abbonato("Anna", "Rosa", "a@p.it", "Milano", "444", piano, conto, null, null, null, null);
+     * 
+     * 
      * @author ParthEll Team
      * @version 1.0
      */
