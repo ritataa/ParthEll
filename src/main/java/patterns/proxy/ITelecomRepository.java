@@ -10,14 +10,16 @@ import patterns.builder.Abbonato;
 import patterns.state.Pagamento;
 
 /**
- * Contratto comune tra il repository reale e il proxy.
- * Espone le stesse operazioni pubbliche di {@link service.TelecomRepository}
- * senza legare i client alla classe concreta.
- *
  * Interfaccia che contiene le regole di accesso al database e le operazioni di business per la gestione degli abbonati, promozioni e pagamenti.
  * Praticamentw dice cosa si può chiedere al servizio.
  * Il proxy implementerà questa interfaccia per fornire un livello di controllo e caching, mentre il repository reale si occuperà dell'accesso diretto al database.
  * 
+ *  2 principi SOLID: la Dependency Inversion e l'Open/Closed Principle:
+    * (DIP): i nostri Controller (l'alto livello) non dipendono mai direttamente dal TelecomRepository o dal Proxy (il basso livello), 
+    *        ma dipendono unicamente dall'interfaccia. Questo elimina l'accoppiamento rigido.
+    * (OCP): Controller è 'chiuso alle modifiche ma aperto all'estensione'. 
+    *        Se in futuro volessimo creare una nuova implementazione, ci basterà creare una nuova classe che implementa l'interfaccia
+
  * Tutto parte da questa interfaccia, che dice al resto del sistema che se vogliono parlare con il database, devono usare i metodi dichiarati qui.
  * 
  * @author ParthEll Team
